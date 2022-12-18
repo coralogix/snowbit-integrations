@@ -1,7 +1,0 @@
-privatekey = ""
-coralogix_region = ""
-application_name = "tf-integration"
-subsystemName = "tf-integration"
-firehose_stream = "fh-stream"
-log_group_name = "can-delete"
-log_group = "fh-stream-lg"

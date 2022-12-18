@@ -1,0 +1,25 @@
+{
+  "jumpcloud": {
+    "api_key": "JumpCloud_API_KEY",
+    "json_depth": 10,
+    "timestamp_field_name": "timestamp",
+    "initial_days_back": -1
+  },
+  "siem": {
+    "format": "json_lines",
+    "url": "https://ingress.<domain>/logs/datastream",
+    "method": "POST",
+    "headers": {
+      "private_key": "CORALOGIX_API_KEY"
+    },
+    "content_type": "application/json",
+    "batch_size": 1000,
+    "batch_delay_milliseconds": 100,
+    "timestamp_field_name": "jc_timestamp",
+    "custom_log_fields": {
+      "reqHost": "<Application>>",
+      "customField": "<Subsystem>",
+      "severity": "info"
+    }
+  }
+}
