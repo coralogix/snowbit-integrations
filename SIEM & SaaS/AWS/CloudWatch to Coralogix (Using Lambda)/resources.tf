@@ -77,24 +77,11 @@ resource "aws_iam_policy" "kms-policy" {
       Terraform-ID = random_id.id.hex
     })
 }
-resource "aws_iam_policy" "cloudwatch-policy" {
-  name   = "cloudwatch-access-policy"
-  policy = data.aws_iam_policy_document.cloudwatch-access.json
-  tags          = merge(var.additional_tags,
-    {
-      Terraform-ID = random_id.id.hex
-    })
-}
 resource "aws_iam_policy_attachment" "kms-attachment" {
   count      = length(var.kms_key_arn) > 0 ? 1 : 0
   name       = "kms-policy-attach-${random_id.id.hex}"
   roles      = [aws_iam_role.lambda-role.name]
   policy_arn = aws_iam_policy.kms-policy[0].arn
-}
-resource "aws_iam_policy_attachment" "cloudwatch-attachment" {
-  name       = "cloudwatch_policy_attach-${random_id.id.hex}"
-  policy_arn = aws_iam_policy.cloudwatch-policy.arn
-  roles      = [aws_iam_role.lambda-role.name]
 }
 resource "aws_iam_policy_attachment" "AWSLambdaBasicExecutionRole" {
   roles      = [aws_iam_role.lambda-role.name]
