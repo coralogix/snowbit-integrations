@@ -194,6 +194,7 @@ Parameters:
     ConstraintDescription: The AlertsPrivateKey should be valid UUID string
     MinLength: 36
     MaxLength: 36
+    NoEcho: true
   CSPMVersion:
     Type: String
     Default: latest
