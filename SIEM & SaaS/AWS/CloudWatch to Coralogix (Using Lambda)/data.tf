@@ -12,24 +12,6 @@ data "aws_iam_policy_document" "kms-decrypt" {
     resources = [var.kms_key_arn]
   }
 }
-data "aws_iam_policy_document" "cloudwatch-access" {
-  statement {
-    sid     = "CloudwatchAccessGeneral"
-    effect  = "Allow"
-    actions = [
-      "logs:GetLogRecord",
-      "logs:GetQueryResults",
-      "logs:GetLogDelivery"
-    ]
-    resources = ["*"]
-  }
-  statement {
-    sid       = "CloudwatchAccessSpecificGroup"
-    effect    = "Allow"
-    actions   = ["logs:Get*"]
-    resources = [data.aws_cloudwatch_log_group.cloudwatch.arn]
-  }
-}
 data "aws_iam_policy" "AWSLambdaBasicExecutionRole" {
   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
