@@ -1,4 +1,4 @@
-# Organization fetch & Docker run
+# Organization fetch & Docker run for Snowbit CSPM
 This script is used for automatically fetch all AWS accounts in the organization and build an ARN for each account so that Snowbit CSPM can scan them.
 
 The script replaces the regular `crontab` command used in the original deployment.  
