@@ -36,7 +36,7 @@ The script replaces the regular `crontab` command used in the original deploymen
 ```
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install boto3.
+On the EC2 used for the CSPM, use the package manager [pip](https://pip.pypa.io/en/stable/) to install boto3.
 
 ```bash
 sudo apt-get install python3-pip -y
