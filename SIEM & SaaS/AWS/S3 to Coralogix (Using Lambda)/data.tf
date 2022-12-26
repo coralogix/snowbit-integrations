@@ -1,12 +1,12 @@
 data "aws_region" "this" {}
 data "aws_caller_identity" "current" {}
 data "aws_iam_policy_document" "kms-decrypt" {
-  count              = var.kms_arn > 0 ? 1 : 0
+  count              = length(var.kms_id_for_s3) > 0 ? 1 : 0
   statement {
     sid              = "kmsDecrypt"
     effect           = "Allow"
     actions          = ["kms:Decrypt"]
-    resources        = [var.kms_arn]
+    resources        = [data.aws_kms_key.s3.arn]
   }
 }
 data "aws_iam_policy_document" "s3-bucket-access" {
@@ -26,4 +26,7 @@ data "aws_iam_policy_document" "s3-bucket-access" {
 }
 data "aws_iam_policy" "AWSLambdaBasicExecutionRole" {
   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+data "aws_kms_key" "s3" {
+  key_id = var.kms_id_for_s3
 }

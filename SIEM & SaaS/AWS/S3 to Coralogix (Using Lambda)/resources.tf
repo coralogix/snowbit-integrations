@@ -1,17 +1,19 @@
 resource "aws_iam_policy" "kms-policy" {
-  count  = var.kms_arn > 0 ? 1 : 0
+  count  = length(var.kms_id_for_s3) > 0 ? 1 : 0
   name   = "kms-policy-${random_string.this.result}"
   policy = data.aws_iam_policy_document.kms-decrypt[0].json
+  tags   = var.additional_tags
 }
 resource "aws_iam_policy" "s3-bucket-access" {
   name   = "s3-bucket-access-${random_string.this.result}"
   policy = data.aws_iam_policy_document.s3-bucket-access[0].json
+  tags   = var.additional_tags
 }
 resource "aws_iam_policy_attachment" "kms-policy-attachment" {
-  count      = var.kms_arn > 0 ? 1 : 0
+  count      = length(var.kms_id_for_s3) > 0 ? 1 : 0
   name       = "kms-policy"
   roles      = [aws_iam_role.lambda-role.name]
-  policy_arn = aws_iam_policy.kms-policy.arn
+  policy_arn = aws_iam_policy.kms-policy[0].arn
 }
 resource "aws_iam_policy_attachment" "s3-policy-attachment" {
   name       = "s3-policy"
@@ -38,17 +40,19 @@ resource "aws_iam_role" "lambda-role" {
       },
     ]
   })
+  tags = var.additional_tags
 }
 resource "aws_lambda_function" "this" {
-  function_name = "guardduty-to-coralogix"
+  function_name = var.function_name
   role          = aws_iam_role.lambda-role.arn
   s3_bucket     = "coralogix-serverless-repo-${data.aws_region.this.name}"
-  s3_key        = "${var.package_name}.zip"
+  s3_key        = "s3.zip"
   runtime       = "nodejs16.x"
   handler       = "index.handler"
   architectures = [var.architecture]
   memory_size   = var.memory_size
   timeout       = var.timeout
+  tags          = var.additional_tags
   environment {
     variables = {
       CORALOGIX_URL         = "https://${lookup(local.coralogix_regions, var.coralogix_region, "Europe")}/api/v1/logs"
@@ -66,6 +70,7 @@ resource "aws_lambda_function" "this" {
 resource "random_string" "this" {
   length  = 6
   special = false
+  upper   = false
 }
 resource "aws_lambda_permission" "invoke" {
   action         = "lambda:InvokeFunction"
@@ -84,7 +89,4 @@ resource "aws_s3_bucket_notification" "this" {
     filter_suffix       = var.s3_key_suffix
   }
 }
-resource "aws_cloudwatch_log_group" "lambda-log-group" {
-  name              = "/aws/lambda/guardduty-to-coralogix"
-  retention_in_days = 1
-}
+

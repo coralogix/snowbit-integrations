@@ -1,7 +1,7 @@
-variable "package_name" {
-  description = "The name of the package to use for the function"
-  type        = string
-  default     = "s3"
+## ----- Lambda Function ----- ##
+variable "function_name" {
+  type = string
+  description = "The Lambda function name in the AWS account"
 }
 variable "architecture" {
   description = "Lambda function architecture"
@@ -17,28 +17,6 @@ variable "timeout" {
   description = "Lambda function timeout limit"
   type        = number
   default     = 300
-}
-variable "coralogix_region" {
-  description = "The Coralogix location region, possible options are [Europe, Europe2, India, Singapore, US]"
-  type        = string
-  default     = "Europe"
-}
-variable "private_key" {
-  description = "The Coralogix private key which is used to validate your authenticity"
-  type        = string
-  sensitive   = true
-  validation {
-    condition = can(regex("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}", var.private_key))
-    error_message = "The PrivateKey should be valid UUID string"
-  }
-}
-variable "application_name" {
-  description = "The name of your application"
-  type        = string
-}
-variable "subsystem_name" {
-  description = "The subsystem name of your application"
-  type        = string
 }
 variable "newline_pattern" {
   description = "The pattern for lines splitting"
@@ -65,14 +43,6 @@ variable "debug" {
   type        = bool
   default     = false
 }
-variable "kms_arn" {
-  type = string
-  description = "The ARN for the KMS used for the encryption"
-}
-variable "s3-bucket" {
-  type = string
-  description = "The s3 that saves the data for GuardDuty"
-}
 variable "s3_key_prefix" {
   description = "The S3 path prefix to watch"
   type        = string
@@ -82,4 +52,43 @@ variable "s3_key_suffix" {
   description = "The S3 path suffix to watch"
   type        = string
   default     = null
+}
+variable "kms_id_for_s3" {
+  type = string
+  description = "The ARN for the KMS used for the encryption"
+}
+
+
+## ---- Coralogix Account ---- ##
+variable "private_key" {
+  description = "The Coralogix private key which is used to validate your authenticity"
+  type        = string
+  sensitive   = true
+  validation {
+    condition = can(regex("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}", var.private_key))
+    error_message = "The PrivateKey should be valid UUID string"
+  }
+}
+variable "application_name" {
+  description = "The name of your application"
+  type        = string
+}
+variable "subsystem_name" {
+  description = "The subsystem name of your application"
+  type        = string
+}
+variable "coralogix_region" {
+  description = "The Coralogix location region, possible options are [Europe, Europe2, India, Singapore, US]"
+  type        = string
+  default     = "Europe"
+}
+
+## --------- General --------- ##
+variable "s3-bucket" {
+  type = string
+  description = "The s3 that saves the data you wish to send to Coralogix"
+}
+variable "additional_tags" {
+  type    = map(string)
+  default = {}
 }
