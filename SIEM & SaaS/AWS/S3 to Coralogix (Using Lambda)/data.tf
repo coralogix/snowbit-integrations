@@ -6,7 +6,7 @@ data "aws_iam_policy_document" "kms-decrypt" {
     sid              = "kmsDecrypt"
     effect           = "Allow"
     actions          = ["kms:Decrypt"]
-    resources        = [data.aws_kms_key.s3.arn]
+    resources        = [data.aws_kms_key.s3[0].arn]
   }
 }
 data "aws_iam_policy_document" "s3-bucket-access" {
@@ -28,5 +28,6 @@ data "aws_iam_policy" "AWSLambdaBasicExecutionRole" {
   arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 data "aws_kms_key" "s3" {
+  count = length(var.kms_id_for_s3) > 0 ? 1 : 0
   key_id = var.kms_id_for_s3
 }
