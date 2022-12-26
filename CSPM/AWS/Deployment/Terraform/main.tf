@@ -16,7 +16,7 @@ variable "instanceType" {}
 variable "DiskType" {}
 variable "TesterList" {}
 variable "RegionList" {}
-variable "multiAccountsARN" {}
+variable "multiAccountsARNs" {}
 variable "CSPMVersion" {}
 
 module "CSPM" {
@@ -41,7 +41,7 @@ module "CSPM" {
   #  DiskType                = var.DiskType
   #  TesterList              = var.TesterList
   #  RegionList              = var.RegionList
-  #  multiAccountsARN        = var.multiAccountsARN
+  #  multiAccountsARNs       = var.multiAccountsARN
 }
 
 output "Coralogix-Private-Key" {
