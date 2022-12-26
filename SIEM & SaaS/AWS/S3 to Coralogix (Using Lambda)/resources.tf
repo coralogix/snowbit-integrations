@@ -1,12 +1,14 @@
 resource "aws_iam_policy" "kms-policy" {
+  count  = var.kms_arn > 0 ? 1 : 0
   name   = "kms-policy-${random_string.this.result}"
   policy = data.aws_iam_policy_document.kms-decrypt[0].json
 }
 resource "aws_iam_policy" "s3-bucket-access" {
-  name = "s3-bucket-access-${random_string.this.result}"
+  name   = "s3-bucket-access-${random_string.this.result}"
   policy = data.aws_iam_policy_document.s3-bucket-access[0].json
 }
 resource "aws_iam_policy_attachment" "kms-policy-attachment" {
+  count      = var.kms_arn > 0 ? 1 : 0
   name       = "kms-policy"
   roles      = [aws_iam_role.lambda-role.name]
   policy_arn = aws_iam_policy.kms-policy.arn
@@ -17,9 +19,9 @@ resource "aws_iam_policy_attachment" "s3-policy-attachment" {
   policy_arn = aws_iam_policy.s3-bucket-access.arn
 }
 resource "aws_iam_policy_attachment" "AWSLambdaBasicExecutionRole" {
-  roles = [aws_iam_role.lambda-role.name]
+  roles      = [aws_iam_role.lambda-role.name]
   policy_arn = data.aws_iam_policy.AWSLambdaBasicExecutionRole.arn
-  name = data.aws_iam_policy.AWSLambdaBasicExecutionRole.name
+  name       = data.aws_iam_policy.AWSLambdaBasicExecutionRole.name
 }
 resource "aws_iam_role" "lambda-role" {
   name               = "Lambda-Role-${random_string.this.result}"
@@ -66,15 +68,15 @@ resource "random_string" "this" {
   special = false
 }
 resource "aws_lambda_permission" "invoke" {
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.this.function_name
-  principal     = "s3.amazonaws.com"
-  statement_id = "invoke-${random_string.this.result}"
-  source_arn = "arn:aws:s3:::${var.guardduty-s3-bucket}"
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.this.function_name
+  principal      = "s3.amazonaws.com"
+  statement_id   = "invoke-${random_string.this.result}"
+  source_arn     = "arn:aws:s3:::${var.s3-bucket}"
   source_account = data.aws_caller_identity.current.account_id
 }
 resource "aws_s3_bucket_notification" "this" {
-  bucket = var.guardduty-s3-bucket
+  bucket = var.s3-bucket
   lambda_function {
     lambda_function_arn = aws_lambda_function.this.arn
     events              = ["s3:ObjectCreated:*"]
@@ -83,6 +85,6 @@ resource "aws_s3_bucket_notification" "this" {
   }
 }
 resource "aws_cloudwatch_log_group" "lambda-log-group" {
-  name = "/aws/lambda/guardduty-to-coralogix"
+  name              = "/aws/lambda/guardduty-to-coralogix"
   retention_in_days = 1
 }

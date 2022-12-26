@@ -69,7 +69,7 @@ variable "kms_arn" {
   type = string
   description = "The ARN for the KMS used for the encryption"
 }
-variable "guardduty-s3-bucket" {
+variable "s3-bucket" {
   type = string
   description = "The s3 that saves the data for GuardDuty"
 }

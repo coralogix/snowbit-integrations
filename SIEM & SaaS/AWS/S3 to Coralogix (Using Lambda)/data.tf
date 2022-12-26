@@ -1,7 +1,7 @@
 data "aws_region" "this" {}
 data "aws_caller_identity" "current" {}
 data "aws_iam_policy_document" "kms-decrypt" {
-  count              = 1
+  count              = var.kms_arn > 0 ? 1 : 0
   statement {
     sid              = "kmsDecrypt"
     effect           = "Allow"
@@ -21,7 +21,7 @@ data "aws_iam_policy_document" "s3-bucket-access" {
       "s3:GetObjectVersion",
       "s3:GetLifecycleConfiguration"
     ]
-    resources       = ["arn:aws:s3:::${var.guardduty-s3-bucket}","arn:aws:s3:::${var.guardduty-s3-bucket}/*"]
+    resources       = ["arn:aws:s3:::${var.s3-bucket}","arn:aws:s3:::${var.s3-bucket}/*"]
   }
 }
 data "aws_iam_policy" "AWSLambdaBasicExecutionRole" {
