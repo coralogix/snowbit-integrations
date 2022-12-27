@@ -20,7 +20,7 @@ variable "multiAccountsARNs" {}
 variable "CSPMVersion" {}
 
 module "CSPM" {
-  source = "s3::https://snowbit-shared-resources.s3.eu-west-1.amazonaws.com/CSPM/AWS/Terraform/Deployment"
+  source = "github.com/coralogix/snowbit-modules//AWS"
 
   PrivateKey    = var.PrivateKey
   Subnet_ID     = var.Subnet_ID

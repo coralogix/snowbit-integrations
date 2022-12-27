@@ -17,7 +17,7 @@ variable "zone" {}
 variable "credentials_file" {}
 
 module "CSPM" {
-  source = "s3::https://snowbit-shared-resources.s3.eu-west-1.amazonaws.com/CSPM/GCP/Terraform/Deployment"
+  source = "github.com/coralogix/snowbit-modules//GCP"
 
   applicationName        = var.applicationName
   subsystemName          = var.subsystemName
