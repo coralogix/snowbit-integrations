@@ -31,3 +31,7 @@ data "aws_kms_key" "s3" {
   count = length(var.kms_id_for_s3) > 0 ? 1 : 0
   key_id = var.kms_id_for_s3
 }
+data "aws_kms_key" "lambda-log-group" {
+  count = length(var.kms_id_for_lambda_log_group) > 0 ? 1 :0
+  key_id = var.kms_id_for_lambda_log_group
+}

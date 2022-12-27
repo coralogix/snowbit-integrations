@@ -89,4 +89,10 @@ resource "aws_s3_bucket_notification" "this" {
     filter_suffix       = var.s3_key_suffix
   }
 }
-
+resource "aws_cloudwatch_log_group" "lambda-execution-log-group" {
+  count = length(var.kms_id_for_lambda_log_group) > 0 ? 1 : 0
+  name = "/aws/lambda/${var.function_name}"
+  kms_key_id = data.aws_kms_key.lambda-log-group[0].arn
+  retention_in_days = 1
+  tags = var.additional_tags
+}

@@ -2,7 +2,8 @@
 #                        Services
 # ----------------------------------------------------------
 resource "aws_lambda_function" "cloudwatch-lambda" {
-  function_name = length(var.lambda_application_name) > 0 ? "${var.lambda_application_name}-${random_id.id.hex}" : "CloudWatch-to-Coralogix-${random_id.id.hex}"
+  depends_on = [aws_cloudwatch_log_group.lambda-log-group]
+  function_name = length(var.lambda_application_name) > 0 ? var.lambda_application_name : "CloudWatch-to-Coralogix-${random_id.id.hex}"
   description   = "Send CloudWatch logs to Coralogix"
   handler       = "index.handler"
   runtime       = var.runtime
@@ -44,6 +45,13 @@ resource "aws_cloudwatch_log_subscription_filter" "subscription_filter" {
   log_group_name  = data.aws_cloudwatch_log_group.cloudwatch.name
   name            = "logs to Coralogix lambda"
 }
+resource "aws_cloudwatch_log_group" "lambda-log-group" {
+  count = length(var.kms_key_id_for_lambda_log_group) > 0 ? 1 :0
+  name = "/aws/lambda/${var.lambda_application_name}"
+  kms_key_id = data.aws_kms_key.kms_key_id_for_lambda_log_group[0].arn
+  retention_in_days = 1
+  tags = var.additional_tags
+}
 
 # ----------------------------------------------------------
 #                       Permissions
@@ -67,21 +75,6 @@ resource "aws_iam_role" "lambda-role" {
     {
       Terraform-ID = random_id.id.hex
     })
-}
-resource "aws_iam_policy" "kms-policy" {
-  count  = length(var.kms_key_arn) > 0 ? 1 : 0
-  name   = "kms-policy-${random_id.id.hex}"
-  policy = data.aws_iam_policy_document.kms-decrypt[0].json
-  tags          = merge(var.additional_tags,
-    {
-      Terraform-ID = random_id.id.hex
-    })
-}
-resource "aws_iam_policy_attachment" "kms-attachment" {
-  count      = length(var.kms_key_arn) > 0 ? 1 : 0
-  name       = "kms-policy-attach-${random_id.id.hex}"
-  roles      = [aws_iam_role.lambda-role.name]
-  policy_arn = aws_iam_policy.kms-policy[0].arn
 }
 resource "aws_iam_policy_attachment" "AWSLambdaBasicExecutionRole" {
   roles      = [aws_iam_role.lambda-role.name]

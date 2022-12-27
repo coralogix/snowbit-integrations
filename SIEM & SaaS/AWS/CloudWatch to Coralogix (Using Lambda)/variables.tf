@@ -73,7 +73,7 @@ variable "architecture" {
   type        = string
   default     = "x86_64"
 }
-variable "kms_key_arn" {
+variable "kms_key_id_for_lambda_log_group" {
   type = string
   default = ""
 }

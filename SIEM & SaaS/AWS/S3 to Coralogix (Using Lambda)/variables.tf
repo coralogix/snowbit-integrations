@@ -57,7 +57,9 @@ variable "kms_id_for_s3" {
   type = string
   description = "The ARN for the KMS used for the encryption"
 }
-
+variable "kms_id_for_lambda_log_group" {
+  type = string
+}
 
 ## ---- Coralogix Account ---- ##
 variable "private_key" {
