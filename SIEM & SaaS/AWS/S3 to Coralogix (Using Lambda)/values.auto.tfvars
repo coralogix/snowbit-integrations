@@ -1,10 +1,10 @@
-application_name      = "gd-test"
-subsystem_name        = "gd-test"
-private_key           = "d06e0c3b-14fc-3243-39f2-5f7f77616892"
-coralogix_region      = "Europe"                  # Can be either Europe, Europe2, India, Singapore or US
+application_name      = ""
+subsystem_name        = ""
+private_key           = ""
+coralogix_region      = ""                  # Can be either Europe, Europe2, India, Singapore or US
 kms_id_for_s3         = ""                  # The KMS key that the Lambda would use to decrypt the logs
-s3-bucket             = "guardduty-snowbit-testing"
-function_name         = "guardduty-to-coralogix"
+s3-bucket             = ""
+function_name         = ""
 additional_tags       = {
-  Owner = "Nir Limor"
+#  Example_key = "example value"
 }
