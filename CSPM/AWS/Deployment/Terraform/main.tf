@@ -101,7 +101,7 @@ output "Region-List" {
   value = var.RegionList
 }
 output "Role-ARN-of-Additional-Account" {
-  value = var.multiAccountsARN
+  value = var.multiAccountsARNs
 }
 output "Additional-Tags" {
   value = var.additional_tags
