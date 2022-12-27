@@ -1,4 +1,4 @@
-privatekey       = ""
+privetKey        = ""
 coralogix_region = ""
 application_name = ""
 subsystemName    = ""

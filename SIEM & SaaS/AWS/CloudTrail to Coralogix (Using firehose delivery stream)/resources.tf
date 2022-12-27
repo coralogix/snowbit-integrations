@@ -1,88 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.17.1"
-    }
-  }
-}
-
-locals {
-    endpoint_url = {
-      "us" = {
-        url = "https://firehose-ingress.coralogix.us/firehose"
-      }
-      "singapore" = {
-        url = "https://firehose-ingress.coralogixsg.com/firehose"
-      }
-      "ireland" = {
-        url = "https://firehose-ingress.coralogix.com/firehose"
-      }
-      "india" = {
-        url = "https://firehose-ingress.coralogix.in/firehose"
-      }
-      "stockholm" = {
-        url = "https://firehose-ingress.eu2.coralogix.com/firehose"
-      }
-    }
-  tags = {
-    terraform-module         = "kinesis-firehose-to-coralogix"
-    terraform-module-version = "v0.0.1"
-    managed-by               = "coralogix-terraform"
-  }
-  application_name = var.application_name == "" ? "snowbit-cloudtrail" : var.application_name
-  subsystem_name   = var.subsystemName == "" ? "snowbit-cloudtrail" : var.subsystemName
-}
-
-data "aws_caller_identity" "current_identity" {}
-data "aws_region" "current_region" {}
-# ====================================================================================================
-#                                       variables
-# ====================================================================================================
-
-variable "privatekey" {
-  description = "The 'send your data' API key from Coralogix account"
-  sensitive   = true
-}
-variable "coralogix_region" {
-  description = "Enter the Coralogix account region [in lower-case letters]: \n- us\n- singapore\n- ireland\n- india\n- stockholm"
-}
-variable "output_format" {
-  description = "The output format of the cloudwatch metric stream: 'json' or 'opentelemetry0.7'"
-  type        = string
-  default     = "json"
-}
-variable "integration_type" {
-  description = "The integration type of the firehose delivery stream: 'CloudWatch_Metrics_JSON', 'CloudWatch_Metrics_OpenTelemetry070' or 'CloudWatch_CloudTrail'"
-  type        = string
-  default     = "CloudWatch_CloudTrail"
-}
-variable "application_name" {
-  description = "The application name for the log group in Coralogix"
-  type        = string
-}
-variable "subsystemName" {
-  description = "The sub-system name for the log group in Coralogix"
-  type        = string
-}
-variable "log_group" {
-  type        = string
-  description = "The log group to to be created that will save the firehose execution logs"
-}
-variable "log_group_name" {
-  type        = string
-  description = "The existing log group that saves the CloudTrail logs in CloudWatch"
-}
-variable "firehose_stream" {
-  description = "The AWS Kinesis firehose delivery stream name that will be created"
-  type        = string
-  default     = "firehose-stream"
-}
-
-# ====================================================================================================
-#                                       Resources
-# ====================================================================================================
-
 resource "aws_kinesis_firehose_delivery_stream" "coralogix_stream" {
   tags        = local.tags
   name        = "coralogix-firehose"
@@ -99,7 +14,7 @@ resource "aws_kinesis_firehose_delivery_stream" "coralogix_stream" {
   http_endpoint_configuration {
     url                = local.endpoint_url[var.coralogix_region].url
     name               = "Coralogix"
-    access_key         = var.privatekey
+    access_key         = var.privetKey
     buffering_size     = 6
     buffering_interval = 60
     s3_backup_mode     = "FailedDataOnly"
