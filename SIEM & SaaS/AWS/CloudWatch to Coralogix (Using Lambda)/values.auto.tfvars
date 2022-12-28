@@ -1,10 +1,10 @@
 # ----------------------------------------------------------
 #                       AWS
 # ----------------------------------------------------------
-lambda_application_name              = "guradduty-lambda"               # Defaults to 'CloudWatch-to-Coralogix'
-log_group_name                       = "/aws/cloudtrail/audit-trail"
-kms_key_id_for_lambda_log_group      = ""
-additional_tags                      = {
+lambda_application_name         = "guradduty-lambda"               # Defaults to 'CloudWatch-to-Coralogix'
+log_group_name                  = "/aws/cloudtrail/audit-trail"
+kms_key_id_for_lambda_log_group = ""
+additional_tags                 = {
   #  test = "value"
 }
 

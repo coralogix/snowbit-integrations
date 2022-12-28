@@ -1,6 +1,6 @@
 ## ----- Lambda Function ----- ##
 variable "function_name" {
-  type = string
+  type        = string
   description = "The Lambda function name in the AWS account"
 }
 variable "architecture" {
@@ -54,7 +54,7 @@ variable "s3_key_suffix" {
   default     = null
 }
 variable "kms_id_for_s3" {
-  type = string
+  type        = string
   description = "The ARN for the KMS used for the encryption"
 }
 variable "kms_id_for_lambda_log_group" {
@@ -67,7 +67,7 @@ variable "private_key" {
   type        = string
   sensitive   = true
   validation {
-    condition = can(regex("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}", var.private_key))
+    condition     = can(regex("^\\w{8}-(\\w{4}-){3}\\w{12}$", var.private_key))
     error_message = "The PrivateKey should be valid UUID string"
   }
 }
@@ -87,7 +87,7 @@ variable "coralogix_region" {
 
 ## --------- General --------- ##
 variable "s3-bucket" {
-  type = string
+  type        = string
   description = "The s3 that saves the data you wish to send to Coralogix"
 }
 variable "additional_tags" {

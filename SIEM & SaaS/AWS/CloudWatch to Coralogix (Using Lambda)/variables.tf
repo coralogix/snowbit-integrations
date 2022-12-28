@@ -12,7 +12,7 @@ variable "coralogix_endpoint" {
   }
 }
 variable "runtime" {
-  type = string
+  type    = string
   default = "nodejs16.x"
 }
 variable "coralogix_region" {
@@ -74,7 +74,7 @@ variable "architecture" {
   default     = "x86_64"
 }
 variable "kms_key_id_for_lambda_log_group" {
-  type = string
+  type    = string
   default = ""
 }
 variable "additional_tags" {
