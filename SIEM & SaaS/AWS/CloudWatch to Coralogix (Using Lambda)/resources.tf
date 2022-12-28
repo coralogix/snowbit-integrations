@@ -3,7 +3,7 @@
 # ----------------------------------------------------------
 resource "aws_lambda_function" "cloudwatch-lambda" {
   depends_on    = [aws_cloudwatch_log_group.lambda-log-group]
-  function_name = length(var.lambda_application_name) > 0 ? var.lambda_application_name : "CloudWatch-to-Coralogix-${random_id.id.hex}"
+  function_name = length(var.function_name) > 0 ? var.function_name : "CloudWatch-to-Coralogix-${random_id.id.hex}"
   description   = "Send CloudWatch logs to Coralogix"
   handler       = "index.handler"
   runtime       = var.runtime
@@ -47,7 +47,7 @@ resource "aws_cloudwatch_log_subscription_filter" "subscription_filter" {
 }
 resource "aws_cloudwatch_log_group" "lambda-log-group" {
   count             = length(var.kms_key_id_for_lambda_log_group) > 0 ? 1 : 0
-  name              = "/aws/lambda/${var.lambda_application_name}"
+  name              = "/aws/lambda/${var.function_name}"
   kms_key_id        = data.aws_kms_key.kms_key_id_for_lambda_log_group[0].arn
   retention_in_days = 1
   tags              = var.additional_tags

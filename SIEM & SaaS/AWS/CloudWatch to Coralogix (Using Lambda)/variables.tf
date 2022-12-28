@@ -1,4 +1,4 @@
-variable "lambda_application_name" {
+variable "function_name" {
   type = string
 }
 variable "coralogix_endpoint" {
