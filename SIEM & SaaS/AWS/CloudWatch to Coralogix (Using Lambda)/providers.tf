@@ -6,3 +6,9 @@ terraform {
     }
   }
 }
+## When using for Route53 Log group
+##      ||
+##      \/
+#provider "aws" {
+#  region = "us-east-1"
+#}
