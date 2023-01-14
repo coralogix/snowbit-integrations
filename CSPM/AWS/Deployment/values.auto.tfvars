@@ -13,26 +13,23 @@ SSHKeyName              = ""            # Without the '.pem'
 
 # --- CSPM Instance & AWS Account
 security_group_id       = ""
-ebs_encryption          = ""            # Boolean
-public_instance         = ""            # Boolean
-SSHIpAddress            = ""            # The public IP address for SSH access to the EC2 instance
+ebs_encryption          = false         # Boolean
+public_instance         = true          # Boolean
+SSHIpAddress            = ""            # The public IP address for SSH access to the EC2 instance. Defaults to the current public IP.
 instanceType            = ""            # https://aws.amazon.com/ec2/instance-types/
-DiskType                = ""            # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html
+DiskType                = ""            # Defaults to 'gp3' - can be 'gp2', 'gp3', 'io1' or 'io2'. for more information - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html
 additional_tags         = {
-  example-key = "example-value"
+#  example-key = "example-value"
 }
 
 # --- CSPM Configurations
-cronjob                 = ""            # correct format - # # # # # - for help https://crontab.guru/
-CSPMVersion             = ""            # Default is 'latest' - for additional information refer to https://hub.docker.com/r/coralogixrepo/snowbit-cspm/tags
-TesterList              = ""
-RegionList              = ""
-multiAccountsARNs       = ""           # ARN(s) for one more account to scan - for additional information refer to https://coralogix.com/docs/cloud-security-posture-cspm/
+cronjob                 = ""            # Optional - Defaults to 00:00 UTC. correct format - # # # # # - for help https://crontab.guru/
+CSPMVersion             = ""            # Optional - Default is 'latest' - for additional information refer to https://hub.docker.com/r/coralogixrepo/snowbit-cspm/tags
+TesterList              = ""            # Optional - When not specified, uses all testers
+RegionList              = ""            # Optional - When not specified, scans all regions
+multiAccountsARNs       = ""            # ARN(s) for one more account to scan - for additional information refer to https://coralogix.com/docs/cloud-security-posture-cspm/
 
 # --- Coralogix Account
 alertAPIkey             = ""
-applicationName         = ""            # For the Coralogix account
-subsystemName           = ""            # For the Coralogix account
-
-
-
+applicationName         = ""            # For the Coralogix account - Defaults to 'CSPM'
+subsystemName           = ""            # For the Coralogix account - Defaults to 'CSPM'
