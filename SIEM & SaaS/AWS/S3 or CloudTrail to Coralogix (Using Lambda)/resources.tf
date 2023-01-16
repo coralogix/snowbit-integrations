@@ -46,7 +46,7 @@ resource "aws_lambda_function" "this" {
   function_name = var.function_name
   role          = aws_iam_role.lambda-role.arn
   s3_bucket     = "coralogix-serverless-repo-${data.aws_region.this.name}"
-  s3_key        = "s3.zip"
+  s3_key        = "${var.integration_type}.zip"
   runtime       = "nodejs16.x"
   handler       = "index.handler"
   architectures = [var.architecture]

@@ -6,6 +6,7 @@ kms_id_for_s3               = ""                  # The KMS key that the Lambda 
 kms_id_for_lambda_log_group = ""
 s3-bucket                   = ""
 function_name               = ""
+integration_type            = ""                  # Can be 's3' or 'cloudtrail'
 additional_tags             = {
   #  Example_key = "example value"
 }

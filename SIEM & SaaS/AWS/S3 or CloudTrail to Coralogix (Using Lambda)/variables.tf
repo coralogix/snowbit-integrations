@@ -60,6 +60,12 @@ variable "kms_id_for_s3" {
 variable "kms_id_for_lambda_log_group" {
   type = string
 }
+variable "integration_type" {
+  type = string
+  validation {
+    condition = can(regex("^(s3|cloudtrail)$", var.integration_type))
+  }
+}
 
 ## ---- Coralogix Account ---- ##
 variable "private_key" {
