@@ -5,6 +5,16 @@ variable "privetKey" {
 variable "coralogix_region" {
   description = "Enter the Coralogix account region [in lower-case letters]: \n- us\n- singapore\n- ireland\n- india\n- stockholm"
 }
+variable "cx_region_map" {
+  type = map(string)
+  default = {
+    Europe = "https://firehose-ingress.coralogix.com/firehose"
+    Europe2 = "https://firehose-ingress.eu2.coralogix.com/firehose"
+    India = "https://firehose-ingress.coralogix.in/firehose"
+    Singapore = "https://firehose-ingress.coralogixsg.com/firehose"
+    US = "https://firehose-ingress.coralogix.us/firehose"
+  }
+}
 variable "output_format" {
   description = "The output format of the cloudwatch metric stream: 'json' or 'opentelemetry0.7'"
   type        = string
@@ -35,4 +45,8 @@ variable "firehose_stream" {
   description = "The AWS Kinesis firehose delivery stream name that will be created"
   type        = string
   default     = "firehose-stream"
+}
+variable "additional_tags" {
+  type    = map(string)
+  default = {}
 }

@@ -1,8 +1,6 @@
 resource "aws_kinesis_firehose_delivery_stream" "coralogix_stream" {
-  tags        = local.tags
-  name        = "coralogix-firehose"
+  name        = length(var.firehose_stream) > 0 ? var.firehose_stream : "coralogix-firehose"
   destination = "http_endpoint"
-
   s3_configuration {
     role_arn           = aws_iam_role.firehose_to_coralogix.arn
     bucket_arn         = aws_s3_bucket.firehose_bucket.arn
@@ -10,9 +8,8 @@ resource "aws_kinesis_firehose_delivery_stream" "coralogix_stream" {
     buffer_interval    = 300
     compression_format = "GZIP"
   }
-
   http_endpoint_configuration {
-    url                = local.endpoint_url[var.coralogix_region].url
+    url                = lookup(var.cx_region_map, var.coralogix_region)
     name               = "Coralogix"
     access_key         = var.privetKey
     buffering_size     = 6
@@ -22,33 +19,29 @@ resource "aws_kinesis_firehose_delivery_stream" "coralogix_stream" {
     retry_duration     = 30
     cloudwatch_logging_options {
       log_stream_name = aws_cloudwatch_log_stream.firehose_logstream_dest.name
-      enabled        = "true"
-      log_group_name = aws_cloudwatch_log_group.firehose_loggroup.name
+      enabled         = "true"
+      log_group_name  = aws_cloudwatch_log_group.firehose_loggroup.name
     }
-
     request_configuration {
       content_encoding = "GZIP"
-
       common_attributes {
         name  = "integrationType"
         value = var.integration_type
       }
-
       common_attributes {
         name  = "applicationName"
-        value = local.application_name
+        value = var.application_name == "" ? "snowbit-cloudtrail" : var.application_name
       }
-
       common_attributes {
         name  = "subsystemName"
-        value = local.subsystem_name
+        value = var.subsystemName == "" ? "snowbit-cloudtrail" : var.subsystemName
       }
     }
   }
+  tags = var.additional_tags
 }
 resource "aws_iam_role" "firehose_to_coralogix" {
-  tags               = local.tags
-  name               = "coralogix-firehose"
+  name               = "coralogix-firehose-${random_string.id.id}"
   assume_role_policy = jsonencode({
     "Version"   = "2012-10-17",
     "Statement" = [
@@ -57,13 +50,12 @@ resource "aws_iam_role" "firehose_to_coralogix" {
         "Principal" = {
           "Service" = "firehose.amazonaws.com"
         },
-        "Effect" = "Allow",
-        "Sid"    = ""
+        "Effect" = "Allow"
       }
     ]
   })
   inline_policy {
-    name   = "test"
+    name   = "coralogix-firehose-execution"
     policy = jsonencode({
       "Version"   = "2012-10-17",
       "Statement" = [
@@ -85,35 +77,17 @@ resource "aws_iam_role" "firehose_to_coralogix" {
         {
           "Effect" = "Allow",
           "Action" = [
-            "kms:Decrypt",
-            "kms:GenerateDataKey"
-          ],
-          "Resource" = [
-            "arn:aws:kms:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_identity.account_id}:key/key-id"
-          ],
-          "Condition" = {
-            "StringEquals" = {
-              "kms:ViaService" = "s3.${data.aws_region.current_region.name}.amazonaws.com"
-            },
-            "StringLike" = {
-              "kms:EncryptionContext:aws:s3:arn" = "${aws_s3_bucket.firehose_bucket.arn}/prefix*"
-            }
-          }
-        },
-        {
-          "Effect" = "Allow",
-          "Action" = [
             "kinesis:DescribeStream",
             "kinesis:GetShardIterator",
             "kinesis:GetRecords",
             "kinesis:ListShards"
           ],
-          "Resource" = "arn:aws:kinesis:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_identity.account_id}:stream/${var.firehose_stream}"
+          "Resource" = "arn:aws:kinesis:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_identity.account_id}:stream/${length(var.firehose_stream) > 0 ? var.firehose_stream : "coralogix-firehose"}"
         },
         {
           "Effect" = "Allow",
           "Action" = [
-            "logs:PutLogEvents"
+            "*"
           ],
           "Resource" = [
             aws_cloudwatch_log_group.firehose_loggroup.arn
@@ -122,10 +96,10 @@ resource "aws_iam_role" "firehose_to_coralogix" {
       ]
     })
   }
+  tags = var.additional_tags
 }
 resource "aws_iam_role" "cloudwatch_access" {
-  tags               = local.tags
-  name               = "cloudwatch_access"
+  name               = "cloudwatch_access-${random_string.id.id}"
   assume_role_policy = jsonencode({
     Version   = "2012-10-17"
     Statement = [
@@ -157,18 +131,16 @@ resource "aws_iam_role" "cloudwatch_access" {
       ]
     })
   }
+  tags = var.additional_tags
 }
 resource "aws_s3_bucket" "firehose_bucket" {
-  tags   = local.tags
-  bucket = "firehose-stream-backup-${random_id.id.hex}"
-}
-resource "random_id" "id" {
-  byte_length = 12
+  bucket = "firehose-stream-backup-${random_string.id.id}"
+  tags   = var.additional_tags
 }
 resource "aws_cloudwatch_log_group" "firehose_loggroup" {
-  tags              = local.tags
-  name              = "/aws/kinesisfirehose/${var.firehose_stream}"
+  name              = "/aws/kinesisfirehose/${length(var.firehose_stream) > 0 ? var.firehose_stream : "coralogix-firehose"}"
   retention_in_days = 1
+  tags              = var.additional_tags
 }
 resource "aws_cloudwatch_log_stream" "firehose_logstream_dest" {
   name           = "DestinationDelivery"
@@ -181,4 +153,9 @@ resource "aws_cloudwatch_log_subscription_filter" "filter_to_firehose" {
   filter_pattern  = ""
   destination_arn = aws_kinesis_firehose_delivery_stream.coralogix_stream.arn
   depends_on      = [aws_kinesis_firehose_delivery_stream.coralogix_stream]
+}
+resource "random_string" "id" {
+  length  = 6
+  upper   = false
+  special = false
 }
