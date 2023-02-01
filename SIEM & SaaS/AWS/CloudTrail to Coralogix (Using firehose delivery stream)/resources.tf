@@ -1,5 +1,5 @@
 resource "aws_kinesis_firehose_delivery_stream" "coralogix_stream" {
-  name        = length(var.firehose_stream) > 0 ? var.firehose_stream : "coralogix-firehose"
+  name        = var.firehose_stream
   destination = "http_endpoint"
   s3_configuration {
     role_arn           = aws_iam_role.firehose_to_coralogix.arn
@@ -11,7 +11,7 @@ resource "aws_kinesis_firehose_delivery_stream" "coralogix_stream" {
   http_endpoint_configuration {
     url                = lookup(var.cx_region_map, var.coralogix_region)
     name               = "Coralogix"
-    access_key         = var.privetKey
+    access_key         = var.privateKey
     buffering_size     = 6
     buffering_interval = 60
     s3_backup_mode     = "FailedDataOnly"
@@ -82,7 +82,7 @@ resource "aws_iam_role" "firehose_to_coralogix" {
             "kinesis:GetRecords",
             "kinesis:ListShards"
           ],
-          "Resource" = "arn:aws:kinesis:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_identity.account_id}:stream/${length(var.firehose_stream) > 0 ? var.firehose_stream : "coralogix-firehose"}"
+          "Resource" = "arn:aws:kinesis:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_identity.account_id}:stream/${var.firehose_stream}"
         },
         {
           "Effect" = "Allow",
@@ -136,6 +136,7 @@ resource "aws_iam_role" "cloudwatch_access" {
 resource "aws_s3_bucket" "firehose_bucket" {
   bucket = "firehose-stream-backup-${random_string.id.id}"
   tags   = var.additional_tags
+  force_destroy = true
 }
 resource "aws_s3_bucket_versioning" "firehose_bucket_versioning" {
   bucket = aws_s3_bucket.firehose_bucket.id
@@ -164,7 +165,7 @@ resource "aws_s3_bucket_public_access_block" "firehose_bucket_public_access_bloc
   restrict_public_buckets = true
 }
 resource "aws_cloudwatch_log_group" "firehose_loggroup" {
-  name              = "/aws/kinesisfirehose/${length(var.firehose_stream) > 0 ? var.firehose_stream : "coralogix-firehose"}"
+  name              = "/aws/kinesisfirehose/${var.firehose_stream}"
   retention_in_days = 1
   tags              = var.additional_tags
   kms_key_id        = var.log_group_kms_key_id
@@ -176,7 +177,7 @@ resource "aws_cloudwatch_log_stream" "firehose_logstream_dest" {
 resource "aws_cloudwatch_log_subscription_filter" "filter_to_firehose" {
   name            = "filter_to_firehose"
   role_arn        = aws_iam_role.cloudwatch_access.arn
-  log_group_name  = var.log_group_name
+  log_group_name  = aws_cloudwatch_log_group.firehose_loggroup.name
   filter_pattern  = ""
   destination_arn = aws_kinesis_firehose_delivery_stream.coralogix_stream.arn
   depends_on      = [aws_kinesis_firehose_delivery_stream.coralogix_stream]

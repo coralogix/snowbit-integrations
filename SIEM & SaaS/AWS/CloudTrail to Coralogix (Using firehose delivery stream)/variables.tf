@@ -37,10 +37,6 @@ variable "subsystemName" {
   description = "The sub-system name for the log group in Coralogix"
   type        = string
 }
-variable "log_group" {
-  type        = string
-  description = "The log group to to be created that will save the firehose execution logs"
-}
 variable "log_group_name" {
   type        = string
   description = "The existing log group that saves the CloudTrail logs in CloudWatch"
@@ -48,7 +44,7 @@ variable "log_group_name" {
 variable "firehose_stream" {
   description = "The AWS Kinesis firehose delivery stream name that will be created"
   type        = string
-  default     = "firehose-stream"
+  default     = "coralogix-firehose"
 }
 variable "additional_tags" {
   type    = map(string)

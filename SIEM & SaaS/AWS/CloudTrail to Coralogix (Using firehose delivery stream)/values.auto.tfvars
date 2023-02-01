@@ -4,7 +4,6 @@ application_name     = ""
 subsystemName        = ""
 firehose_stream      = ""                       # Logical name for the stream
 log_group_name       = ""                       # CloudWatch log group name to track
-log_group            = ""                       # CloudWatch log group's logical name to save the execution logs of the stream
 s3_bucket_versioning = "Disabled"               # Versioning can either be 'Enabled', 'Disabled' or 'Suspended'
 s3_bucket_acl        = "private"                # Can either be 'private', 'public-read', 'public-read-write', 'authenticated-read', 'aws-exec-read' or 'log-delivery-write'
 s3_bucket_encryption = true                     # Boolean
