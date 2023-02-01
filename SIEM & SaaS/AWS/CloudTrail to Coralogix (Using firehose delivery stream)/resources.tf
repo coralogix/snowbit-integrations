@@ -137,10 +137,37 @@ resource "aws_s3_bucket" "firehose_bucket" {
   bucket = "firehose-stream-backup-${random_string.id.id}"
   tags   = var.additional_tags
 }
+resource "aws_s3_bucket_versioning" "firehose_bucket_versioning" {
+  bucket = aws_s3_bucket.firehose_bucket.id
+  versioning_configuration {
+    status = var.s3_bucket_versioning
+  }
+}
+resource "aws_s3_bucket_acl" "firehose_bucket_acl" {
+  bucket = aws_s3_bucket.firehose_bucket.id
+  acl    = var.s3_bucket_acl
+}
+resource "aws_s3_bucket_server_side_encryption_configuration" "firehose_bucket_encryption" {
+  count  = var.s3_bucket_encryption == true ? 1 : 0
+  bucket = aws_s3_bucket.firehose_bucket.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+resource "aws_s3_bucket_public_access_block" "firehose_bucket_public_access_block" {
+  bucket                  = aws_s3_bucket.firehose_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
 resource "aws_cloudwatch_log_group" "firehose_loggroup" {
   name              = "/aws/kinesisfirehose/${length(var.firehose_stream) > 0 ? var.firehose_stream : "coralogix-firehose"}"
   retention_in_days = 1
   tags              = var.additional_tags
+  kms_key_id        = var.log_group_kms_key_id
 }
 resource "aws_cloudwatch_log_stream" "firehose_logstream_dest" {
   name           = "DestinationDelivery"

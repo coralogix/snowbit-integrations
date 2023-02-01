@@ -1,6 +1,10 @@
 variable "privetKey" {
   description = "The 'send your data' API key from Coralogix account"
   sensitive   = true
+  validation {
+    condition     = can(regex("^\\w{8}-(\\w{4}-){3}\\w{12}$", var.privetKey))
+    error_message = "The PrivateKey should be valid UUID string"
+  }
 }
 variable "coralogix_region" {
   description = "Enter the Coralogix account region [in lower-case letters]: \n- us\n- singapore\n- ireland\n- india\n- stockholm"
@@ -49,4 +53,26 @@ variable "firehose_stream" {
 variable "additional_tags" {
   type    = map(string)
   default = {}
+}
+variable "s3_bucket_versioning" {
+  type = string
+  validation {
+    condition = can(regex("^(Disabled|Enabled|Suspended)$", var.s3_bucket_versioning))
+    error_message = "Versioning can either be 'Enabled', 'Disabled' or 'Suspended'"
+  }
+}
+variable "s3_bucket_acl" {
+  type = string
+  validation {
+    condition = var.s3_bucket_acl == "private" || var.s3_bucket_acl == "public-read" || var.s3_bucket_acl == "public-read-write" || var.s3_bucket_acl == "authenticated-read" || var.s3_bucket_acl == "aws-exec-read" || var.s3_bucket_acl == "log-delivery-write"
+    error_message = "Can either be 'private', 'public-read', 'public-read-write', 'authenticated-read', 'aws-exec-read' or 'log-delivery-write'"
+  }
+}
+variable "s3_bucket_encryption" {
+  type = bool
+  default = true
+}
+variable "log_group_kms_key_id" {
+  type = string
+  default = ""
 }
