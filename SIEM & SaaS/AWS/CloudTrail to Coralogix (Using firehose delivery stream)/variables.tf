@@ -1,8 +1,8 @@
-variable "privetKey" {
+variable "privateKey" {
   description = "The 'send your data' API key from Coralogix account"
   sensitive   = true
   validation {
-    condition     = can(regex("^\\w{8}-(\\w{4}-){3}\\w{12}$", var.privetKey))
+    condition     = can(regex("^\\w{8}-(\\w{4}-){3}\\w{12}$", var.privateKey))
     error_message = "The PrivateKey should be valid UUID string"
   }
 }
