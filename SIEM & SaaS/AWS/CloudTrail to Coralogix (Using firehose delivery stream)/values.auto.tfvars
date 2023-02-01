@@ -1,4 +1,4 @@
-privetKey            = ""
+privateKey           = ""
 coralogix_region     = ""                       # Can be either Europe, Europe2, India, Singapore or US
 application_name     = ""
 subsystemName        = ""
