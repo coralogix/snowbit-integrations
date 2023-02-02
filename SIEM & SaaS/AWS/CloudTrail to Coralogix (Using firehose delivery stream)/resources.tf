@@ -177,7 +177,7 @@ resource "aws_cloudwatch_log_stream" "firehose_logstream_dest" {
 resource "aws_cloudwatch_log_subscription_filter" "filter_to_firehose" {
   name            = "filter_to_firehose"
   role_arn        = aws_iam_role.cloudwatch_access.arn
-  log_group_name  = aws_cloudwatch_log_group.firehose_loggroup.name
+  log_group_name  = var.log_group_name
   filter_pattern  = ""
   destination_arn = aws_kinesis_firehose_delivery_stream.coralogix_stream.arn
   depends_on      = [aws_kinesis_firehose_delivery_stream.coralogix_stream]

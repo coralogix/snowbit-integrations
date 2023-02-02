@@ -10,13 +10,13 @@ variable "coralogix_region" {
   description = "Enter the Coralogix account region [in lower-case letters]: \n- us\n- singapore\n- ireland\n- india\n- stockholm"
 }
 variable "cx_region_map" {
-  type = map(string)
+  type    = map(string)
   default = {
-    Europe = "https://firehose-ingress.coralogix.com/firehose"
-    Europe2 = "https://firehose-ingress.eu2.coralogix.com/firehose"
-    India = "https://firehose-ingress.coralogix.in/firehose"
+    Europe    = "https://firehose-ingress.coralogix.com/firehose"
+    Europe2   = "https://firehose-ingress.eu2.coralogix.com/firehose"
+    India     = "https://firehose-ingress.coralogix.in/firehose"
     Singapore = "https://firehose-ingress.coralogixsg.com/firehose"
-    US = "https://firehose-ingress.coralogix.us/firehose"
+    US        = "https://firehose-ingress.coralogix.us/firehose"
   }
 }
 variable "output_format" {
@@ -53,22 +53,22 @@ variable "additional_tags" {
 variable "s3_bucket_versioning" {
   type = string
   validation {
-    condition = can(regex("^(Disabled|Enabled|Suspended)$", var.s3_bucket_versioning))
+    condition     = can(regex("^(Disabled|Enabled|Suspended)$", var.s3_bucket_versioning))
     error_message = "Versioning can either be 'Enabled', 'Disabled' or 'Suspended'"
   }
 }
 variable "s3_bucket_acl" {
   type = string
   validation {
-    condition = var.s3_bucket_acl == "private" || var.s3_bucket_acl == "public-read" || var.s3_bucket_acl == "public-read-write" || var.s3_bucket_acl == "authenticated-read" || var.s3_bucket_acl == "aws-exec-read" || var.s3_bucket_acl == "log-delivery-write"
+    condition     = var.s3_bucket_acl == "private" || var.s3_bucket_acl == "public-read" || var.s3_bucket_acl == "public-read-write" || var.s3_bucket_acl == "authenticated-read" || var.s3_bucket_acl == "aws-exec-read" || var.s3_bucket_acl == "log-delivery-write"
     error_message = "Can either be 'private', 'public-read', 'public-read-write', 'authenticated-read', 'aws-exec-read' or 'log-delivery-write'"
   }
 }
 variable "s3_bucket_encryption" {
-  type = bool
+  type    = bool
   default = true
 }
 variable "log_group_kms_key_id" {
-  type = string
+  type    = string
   default = ""
 }
