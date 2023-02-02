@@ -64,6 +64,7 @@ variable "integration_type" {
   type = string
   validation {
     condition = can(regex("^(s3|cloudtrail)$", var.integration_type))
+    error_message = "Can be 's3' or 'cloudtrail'"
   }
 }
 
