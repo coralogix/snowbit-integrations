@@ -28,10 +28,10 @@ module "CSPM" {
   SSHKeyName    = var.SSHKeyName
   Company_ID    = var.Company_ID
   cronjob       = var.cronjob
-  instanceType            = var.instanceType
-  SSHIpAddress            = var.SSHIpAddress
-  DiskType                = var.DiskType
-  alertAPIkey             = var.alertAPIkey
+  instanceType  = var.instanceType
+  SSHIpAddress  = var.SSHIpAddress
+  DiskType      = var.DiskType
+  alertAPIkey   = var.alertAPIkey
   #  additional_tags         = var.additional_tags
   #  applicationName         = var.applicationName
   #  subsystemName           = var.subsystemName
