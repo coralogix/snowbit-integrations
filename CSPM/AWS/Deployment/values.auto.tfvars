@@ -13,8 +13,8 @@ SSHKeyName              = ""            # Without the '.pem'
 
 # --- CSPM Instance & AWS Account
 security_group_id       = ""
-ebs_encryption          = ""            # Boolean
-public_instance         = ""            # Boolean
+ebs_encryption          = false         # Boolean
+public_instance         = true          # Boolean
 SSHIpAddress            = ""            # The public IP address for SSH access to the EC2 instance
 instanceType            = ""            # https://aws.amazon.com/ec2/instance-types/
 DiskType                = ""            # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html
