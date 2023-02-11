@@ -1,6 +1,6 @@
 resource "aws_lambda_function" "sqs_lambda" {
   function_name = length(var.function_name) > 0 ? var.function_name : "SQS_to_Coralogix-${random_string.id.id}"
-  description = "Sends CloudTrail logs to Coralogix"
+  description   = "Sends CloudTrail logs to Coralogix"
   role          = aws_iam_role.lambda_role.arn
   handler       = "function.handler"
   runtime       = "python3.9"
