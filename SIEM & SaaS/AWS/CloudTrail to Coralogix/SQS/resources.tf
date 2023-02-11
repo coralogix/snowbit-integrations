@@ -5,8 +5,9 @@ resource "aws_lambda_function" "sqs_lambda" {
   handler       = "function.handler"
   runtime       = "python3.9"
   architectures = ["x86_64"]
+  timeout       = 300
   s3_bucket     = "snowbit-shared-resources"
-  s3_key        = "lambda/sqs.zip"
+  s3_key        = "lambda/coralogix.zip"
   tags          = merge(var.additional_tags,
     {
       execution_id = random_string.id.id
