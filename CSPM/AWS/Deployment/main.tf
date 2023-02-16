@@ -10,7 +10,6 @@ variable "public_instance" {}
 variable "SSHIpAddress" {}
 variable "applicationName" {}
 variable "subsystemName" {}
-variable "cronjob" {}
 variable "additional_tags" {}
 variable "instanceType" {}
 variable "DiskType" {}
@@ -22,17 +21,16 @@ variable "CSPMVersion" {}
 module "CSPM" {
   source = "github.com/coralogix/snowbit-modules//AWS"
 
-  PrivateKey    = var.PrivateKey
-  Subnet_ID     = var.Subnet_ID
-  GRPC_Endpoint = var.GRPC_Endpoint
-  SSHKeyName    = var.SSHKeyName
-  Company_ID    = var.Company_ID
-  cronjob       = var.cronjob
-  instanceType  = var.instanceType
-  SSHIpAddress  = var.SSHIpAddress
-  DiskType      = var.DiskType
-  alertAPIkey   = var.alertAPIkey
-  #  additional_tags         = var.additional_tags
+  PrivateKey      = var.PrivateKey
+  Subnet_ID       = var.Subnet_ID
+  GRPC_Endpoint   = var.GRPC_Endpoint
+  SSHKeyName      = var.SSHKeyName
+  Company_ID      = var.Company_ID
+  instanceType    = var.instanceType
+  SSHIpAddress    = var.SSHIpAddress
+  DiskType        = var.DiskType
+  alertAPIkey     = var.alertAPIkey
+  additional_tags = var.additional_tags
   #  applicationName         = var.applicationName
   #  subsystemName           = var.subsystemName
   #  security_group_id       = var.security_group_id
