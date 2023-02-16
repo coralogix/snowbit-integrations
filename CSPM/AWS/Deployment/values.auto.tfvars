@@ -19,7 +19,7 @@ SSHIpAddress            = ""            # The public IP address for SSH access t
 instanceType            = ""            # https://aws.amazon.com/ec2/instance-types/
 DiskType                = ""            # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html
 additional_tags         = {
-  example-key = "example-value"
+#  example-key = "example-value"
 }
 
 # --- CSPM Configurations
