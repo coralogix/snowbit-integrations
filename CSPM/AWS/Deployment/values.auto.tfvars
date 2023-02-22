@@ -24,7 +24,7 @@ public_instance         = true          # Boolean
 # ======================================================================================================================
 
 # --- CSPM Instance & AWS Account
-security_group_id       = ""
+security_group_id       = ""            # Optional - if not provided, a new security group will be created
 SSHIpAddress            = ""            # When not using 'security_group_id', choose the public IP address for SSH access to the EC2 instance used in the new security group
 instanceType            = ""            # defaults to 't3.small' - for additional information: https://aws.amazon.com/ec2/instance-types/
 DiskType                = ""            # defaults to 'gp3' - available values are 'gp2' and 'gp3' for additional information: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html
