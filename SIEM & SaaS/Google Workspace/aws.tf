@@ -62,6 +62,10 @@ variable "primary_google_workspace_admin_email" {
 }
 variable "coralogix_private_key" {
   type = string
+    validation {
+    condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}$", var.coralogix_private_key))
+    error_message = "The PrivateKey should be valid UUID string"
+  }
 }
 variable "coralogix_application_name" {
   type = string
@@ -71,6 +75,10 @@ variable "coralogix_subsystem_name" {
 }
 variable "coralogix_company_id" {
   type = string
+  validation {
+    condition = can(regex("^\\d{5,7}$", var.coralogix_company_id))
+    error_message = "Invalid company ID"
+  }
 }
 # AWS Data --->
 data "aws_subnet" "filebeat_subnet" {
