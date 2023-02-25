@@ -1,4 +1,4 @@
-# AWS Variables --->
+# GCP Variables --->
 variable "existing_project_id" {
   type        = string
   description = "GCP project name"
@@ -26,12 +26,11 @@ variable "new_project_billing_account" {
   default = ""
   type    = string
 }
-# AWS Data --->
+# GCP Data --->
 data "google_project" "existing" {
   project_id = var.existing_project_id
 }
-
-# AWS Resources --->
+# GCP Resources --->
 resource "google_project" "new_project" {
   count           = length(var.new_project_name) > 0 ? 1 : 0
   name            = var.new_project_name

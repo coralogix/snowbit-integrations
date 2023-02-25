@@ -1,17 +1,11 @@
-data "aws_subnet" "filebeat_subnet" {
-  id = var.subnet_id
-}
-data "http" "external-ip-address" {
-  url = "http://ifconfig.me"
-}
-
+# AWS Variables --->
 variable "ssh_key" {
   type = string
 }
 variable "subnet_id" {
   type = string
   validation {
-    condition     = can(regex("^[Ss]ubnet\\-[a-f0-9]+", var.subnet_id))
+    condition     = can(regex("^subnet\\-[a-f0-9]+", var.subnet_id))
     error_message = "Invalid subnet ID"
   }
 }
@@ -78,7 +72,14 @@ variable "coralogix_subsystem_name" {
 variable "coralogix_company_id" {
   type = string
 }
-
+# AWS Data --->
+data "aws_subnet" "filebeat_subnet" {
+  id = var.subnet_id
+}
+data "http" "external-ip-address" {
+  url = "http://ifconfig.me"
+}
+# AWS Resources --->
 resource "aws_instance" "filebeat_instance" {
   ami                         = "ami-06d94a781b544c133"
   key_name                    = var.ssh_key
