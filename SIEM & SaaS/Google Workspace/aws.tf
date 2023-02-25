@@ -57,8 +57,12 @@ variable "coralogix_domain" {
   type    = string
   default = "Europe"
 }
-variable "primary_google_workspace_admin_email" {
+variable "primary_google_workspace_admin_email_address" {
   type = string
+  validation {
+    condition = can(regex("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)$", var.primary_google_workspace_admin_email_address))
+    error_message = "Invalid email address"
+  }
 }
 variable "coralogix_private_key" {
   type = string
@@ -127,27 +131,27 @@ filebeat.modules:
   saml:
     enabled: true
     var.jwt_file: "/etc/filebeat/google_credential_file.json"
-    var.delegated_account: "${var.primary_google_workspace_admin_email}"
+    var.delegated_account: "${var.primary_google_workspace_admin_email_address}"
   user_accounts:
     enabled: true
     var.jwt_file: "/etc/filebeat/google_credential_file.json"
-    var.delegated_account: "${var.primary_google_workspace_admin_email}"
+    var.delegated_account: "${var.primary_google_workspace_admin_email_address}"
   login:
     enable: true
     var.jwt_file: "/etc/filebeat/google_credential_file.json"
-    var.delegated_account: "${var.primary_google_workspace_admin_email}"
+    var.delegated_account: "${var.primary_google_workspace_admin_email_address}"
   admin:
     enabled: true
     var.jwt_file: "/etc/filebeat/google_credential_file.json"
-    var.delegated_account: "${var.primary_google_workspace_admin_email}"
+    var.delegated_account: "${var.primary_google_workspace_admin_email_address}"
   drive:
     enabled: true
     var.jwt_file: "/etc/filebeat/google_credential_file.json"
-    var.delegated_account: "${var.primary_google_workspace_admin_email}"
+    var.delegated_account: "${var.primary_google_workspace_admin_email_address}"
   groups:
     enabled: true
     var.jwt_file: "/etc/filebeat/google_credential_file.json"
-    var.delegated_account: "${var.primary_google_workspace_admin_email}"
+    var.delegated_account: "${var.primary_google_workspace_admin_email_address}"
 
 processors:
   - drop_fields:

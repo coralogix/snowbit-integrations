@@ -22,7 +22,7 @@ This integration hold few steps in order to integrate Google Workspace audit log
       1. `new_project_name` - if you wish to create a new project, add the desired name. (when a value is provided, the `existing_project_id` value is ignored)
       2. `new_project_organization` - for the new project
       3. `new_project_billing_account` - for the new project
-#### Note: the `primary_google_workspace_admin_email` variable needs to be the primary admin account (and not a user with admin privilege). this user is visible in the Google Workspace console under `Account > Account Settings` 
+#### Note: the `primary_google_workspace_admin_email_address` variable needs to be the primary admin account email address (and not a user with admin privilege). this user is visible in the Google Workspace console under `Account > Account Settings` 
 ### Finalizing - in Google Workspace
 1. Navigate to `Security > Access and data control > API control`
 2. In the `Domain wide delegation` dialog box, click on `MANAGE DOMAIN WIDE DELEGATION`
