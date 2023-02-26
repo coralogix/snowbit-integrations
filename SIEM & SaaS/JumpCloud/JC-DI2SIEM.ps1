@@ -10,7 +10,7 @@
 #>
 param (
     [Parameter()]
-    [string]$config_file = "/Users/idanmashaal/Dev/GitLab/idan.io/JC-DI2SIEM/config.json"  # Path to $config_file, note that the config file is in the JSON format
+    [string]$config_file
 )
 
 <#
