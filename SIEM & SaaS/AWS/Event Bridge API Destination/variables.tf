@@ -29,6 +29,10 @@ variable "subsystem_name" {
 }
 variable "private_key" {
   type = string
+  validation {
+    condition = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}", var.private_key))
+    error_message = "Invalid private key - expected a valid UUID"
+  }
 }
 variable "additional_tags" {
   type = map(string)
