@@ -41,6 +41,19 @@ variable "private_key" {
 variable "additional_tags" {
   type = map(string)
 }
+variable "event_pattern_map" {
+  type    = map(string)
+  default = {
+    inspector = local.inspector_findings
+  }
+}
+variable "event_pattern" {
+  type = string
+  validation {
+    condition = can(regex("^(inspector|guardDuty)_findings$", var.event_pattern))
+    error_message = "Invalid event pattern"
+  }
+}
 
 resource "aws_cloudwatch_event_api_destination" "this" {
   name                = var.event_api_destination_name
@@ -68,14 +81,23 @@ resource "aws_cloudwatch_event_connection" "this" {
     }
   }
 }
-resource "aws_cloudwatch_event_rule" "this" {
-  name          = "eventbridge-rule-to-coralogix-${random_string.string.id}"
-  event_pattern = <<EOF
+locals {
+  inspector_findings = <<EOF
 {
   "source": ["aws.inspector2"],
   "detail-type": ["Inspector2 Finding"]
 }
 EOF
+  guardDuty_findings = <<EOF
+{
+  "source": ["aws.guardduty"],
+  "detail-type": ["GuardDuty Finding"]
+}
+EOF
+}
+resource "aws_cloudwatch_event_rule" "this" {
+  name          = "eventbridge-rule-to-coralogix-${random_string.string.id}"
+  event_pattern = lookup(var.event_pattern_map, var.event_pattern)
   tags          = merge(var.additional_tags, {
     Terraform-Execution-ID = random_string.string.id
   })
@@ -84,10 +106,10 @@ resource "aws_cloudwatch_event_target" "this" {
   rule      = aws_cloudwatch_event_rule.this.name
   target_id = "eventbridge-target-${random_string.string.id}"
   arn       = aws_cloudwatch_event_api_destination.this.arn
-  role_arn = aws_iam_role.this.arn
+  role_arn  = aws_iam_role.this.arn
 }
 resource "aws_iam_role" "this" {
-  name = "eventbridge-to-coralogix-${random_string.string.id}"
+  name               = "eventbridge-to-coralogix-${random_string.string.id}"
   assume_role_policy = jsonencode({
     Version   = "2012-10-17"
     Statement = [
@@ -114,7 +136,7 @@ resource "aws_iam_role" "this" {
       ]
     })
   }
-  tags          = merge(var.additional_tags, {
+  tags = merge(var.additional_tags, {
     Terraform-Execution-ID = random_string.string.id
   })
 }

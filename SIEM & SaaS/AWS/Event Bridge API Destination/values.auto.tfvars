@@ -7,3 +7,4 @@ private_key                = ""
 additional_tags            = {
 #  example_key = "example value"
 }
+event_pattern = "guardDuty" # can be 'inspector_findings' or 'guardDuty_findings'
