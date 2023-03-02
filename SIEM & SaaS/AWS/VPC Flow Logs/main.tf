@@ -45,9 +45,11 @@ variable "log_format" {
 }
 variable "kms_master_key_id_for_s3" {
   type = string
+  default = ""
 }
 variable "kms_master_key_id_for_cloudwatch" {
   type = string
+  default = ""
 }
 
 locals {
