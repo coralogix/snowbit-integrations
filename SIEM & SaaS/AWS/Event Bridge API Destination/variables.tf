@@ -1,18 +1,5 @@
-variable "event_api_destination_name" {
+variable "custom_event_bus_name" {
   type = string
-}
-variable "event_connection_name" {
-  type = string
-}
-variable "coralogix_endpoint_map" {
-  type    = map(string)
-  default = {
-    Europe    = "https://aws-events.coralogix.com/aws/event"
-    Europe2   = "https://aws-events.eu2.coralogix.com/aws/event"
-    India     = "https://aws-events.coralogix.in/aws/event"
-    Singapore = "https://aws-events.coralogixsg.com/aws/event"
-    US        = "https://aws-events.coralogix.us/aws/event"
-  }
 }
 variable "coralogix_endpoint" {
   type = string
@@ -29,13 +16,19 @@ variable "subsystem_name" {
 }
 variable "private_key" {
   type = string
+  validation {
+    condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}", var.private_key))
+    error_message = "Invalid private key - expected a valid UUID"
+  }
 }
 variable "additional_tags" {
   type = map(string)
 }
-variable "event_pattern_map" {
-  type    = map(string)
-  default = {
+variable "event_pattern" {
+  type = set(string)
+}
+locals {
+  event_pattern_map = {
     inspector_findings = <<EOF
 {
   "source": ["aws.inspector2"],
@@ -48,12 +41,32 @@ EOF
   "detail-type": ["GuardDuty Finding"]
 }
 EOF
-  }
+    auth0              = <<EOF
+{
+  "source": [{
+    "prefix": "aws.partner/auth0.com"
+  }]
 }
-variable "event_pattern" {
-  type = string
-  validation {
-    condition     = can(regex("^(inspector|guardDuty)_findings$", var.event_pattern))
-    error_message = "Invalid event pattern"
+EOF
+    ecr_image_scan = <<EOF
+{
+  "source": ["aws.ecr"],
+  "detail-type": ["ECR Image Scan"]
+}
+EOF
+    okta = <<EOF
+{
+  "source": [{
+    "prefix": "aws.partner/okta.com"
+  }]
+}
+EOF
+  }
+  coralogix_endpoint_map = {
+    Europe    = "https://aws-events.coralogix.com/aws/event"
+    Europe2   = "https://aws-events.eu2.coralogix.com/aws/event"
+    India     = "https://aws-events.coralogix.in/aws/event"
+    Singapore = "https://aws-events.coralogixsg.com/aws/event"
+    US        = "https://aws-events.coralogix.us/aws/event"
   }
 }

@@ -45,9 +45,11 @@ variable "log_format" {
 }
 variable "kms_master_key_id_for_s3" {
   type = string
+  default = ""
 }
 variable "kms_master_key_id_for_cloudwatch" {
   type = string
+  default = ""
 }
 
 locals {
@@ -97,7 +99,6 @@ resource "aws_s3_bucket_versioning" "bucket_versioning" {
 }
 resource "aws_s3_bucket_acl" "bucket_acl" {
   count      = local.s3-needed ? 1 : 0
-  depends_on = [aws_s3_bucket.this]
   bucket     = aws_s3_bucket.this[0].id
   acl        = var.s3_bucket_acl
 }
@@ -132,7 +133,7 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 resource "aws_iam_role" "cloudwatch_flow_logs_role" {
   count = local.cloudwatch-needed ? 1 : 0
-  name  = "VPC-Flow-Logs-CloudWatch-Access"
+  name  = "VPC-Flow-Logs-CloudWatch-Access-${random_string.random.id}"
   tags  = merge(var.additional_tags, {
     Terraform-ID = random_string.random.id
   })

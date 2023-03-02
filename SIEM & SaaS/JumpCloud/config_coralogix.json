@@ -7,7 +7,7 @@
   },
   "siem": {
     "format": "json_lines",
-    "url": "https://api.<domain>/logs/datastream",
+    "url": "https://ingress.<domain>/logs/datastream",
     "method": "POST",
     "headers": {
       "private_key": "CORALOGIX_API_KEY"
