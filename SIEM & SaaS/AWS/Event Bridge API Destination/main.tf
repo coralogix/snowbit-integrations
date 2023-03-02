@@ -6,6 +6,8 @@ terraform {
     }
   }
 }
+
+# Variables
 variable "event_api_destination_name" {
   type = string
 }
@@ -44,17 +46,33 @@ variable "additional_tags" {
 variable "event_pattern_map" {
   type    = map(string)
   default = {
-    inspector = local.inspector_findings
+    inspector_findings = <<EOF
+{
+  "source": ["aws.inspector2"],
+  "detail-type": ["Inspector2 Finding"]
+}
+EOF
+    guardDuty_findings = <<EOF
+{
+  "source": ["aws.guardduty"],
+  "detail-type": ["GuardDuty Finding"]
+}
+EOF
   }
 }
 variable "event_pattern" {
   type = string
   validation {
-    condition = can(regex("^(inspector|guardDuty)_findings$", var.event_pattern))
+    condition     = can(regex("^(inspector|guardDuty)_findings$", var.event_pattern))
     error_message = "Invalid event pattern"
   }
 }
 
+# Data
+data "aws_caller_identity" "account" {}
+data "aws_region" "current" {}
+
+# API
 resource "aws_cloudwatch_event_api_destination" "this" {
   name                = var.event_api_destination_name
   connection_arn      = aws_cloudwatch_event_connection.this.arn
@@ -64,6 +82,7 @@ resource "aws_cloudwatch_event_api_destination" "this" {
 resource "aws_cloudwatch_event_connection" "this" {
   name               = var.event_connection_name
   authorization_type = "API_KEY"
+  description        = "Send logs to Coralogix"
   auth_parameters {
     api_key {
       key   = "x-amz-event-bridge-access-key"
@@ -81,24 +100,13 @@ resource "aws_cloudwatch_event_connection" "this" {
     }
   }
 }
-locals {
-  inspector_findings = <<EOF
-{
-  "source": ["aws.inspector2"],
-  "detail-type": ["Inspector2 Finding"]
-}
-EOF
-  guardDuty_findings = <<EOF
-{
-  "source": ["aws.guardduty"],
-  "detail-type": ["GuardDuty Finding"]
-}
-EOF
-}
+
+# Rule
 resource "aws_cloudwatch_event_rule" "this" {
-  name          = "eventbridge-rule-to-coralogix-${random_string.string.id}"
-  event_pattern = lookup(var.event_pattern_map, var.event_pattern)
-  tags          = merge(var.additional_tags, {
+  name           = "eventbridge-rule-to-coralogix-${random_string.string.id}"
+  event_pattern  = lookup(var.event_pattern_map, var.event_pattern)
+  event_bus_name = "default"
+  tags           = merge(var.additional_tags, {
     Terraform-Execution-ID = random_string.string.id
   })
 }
@@ -116,7 +124,7 @@ resource "aws_iam_role" "this" {
       {
         Action    = "sts:AssumeRole"
         Effect    = "Allow"
-        Sid       = ""
+        Sid       = "EventBridgeToCoralogix"
         Principal = {
           Service = "events.amazonaws.com"
         }
@@ -131,7 +139,7 @@ resource "aws_iam_role" "this" {
         {
           "Effect"   = "Allow",
           "Action"   = "events:InvokeApiDestination",
-          "Resource" = aws_cloudwatch_event_api_destination.this.arn
+          "Resource" = "arn:aws:events:${data.aws_region.current.id}:${data.aws_caller_identity.account.id}:api-destination/${aws_cloudwatch_event_api_destination.this.name}/*"
         }
       ]
     })
@@ -140,6 +148,8 @@ resource "aws_iam_role" "this" {
     Terraform-Execution-ID = random_string.string.id
   })
 }
+
+#Misc
 resource "random_string" "string" {
   length  = 6
   special = false
