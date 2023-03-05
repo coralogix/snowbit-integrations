@@ -1,9 +1,3 @@
-variable "event_api_destination_name" {
-  type = string
-}
-variable "event_connection_name" {
-  type = string
-}
 variable "coralogix_endpoint_map" {
   type    = map(string)
   default = {
@@ -30,7 +24,7 @@ variable "subsystem_name" {
 variable "private_key" {
   type = string
   validation {
-    condition = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}", var.private_key))
+    condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}", var.private_key))
     error_message = "Invalid private key - expected a valid UUID"
   }
 }
@@ -52,12 +46,19 @@ EOF
   "detail-type": ["GuardDuty Finding"]
 }
 EOF
+    auth0 = <<EOF
+{
+  "source": [{
+    "prefix": "aws.partner/auth0.com"
+  }]
+}
+EOF
   }
 }
 variable "event_pattern" {
-  type = string
-  validation {
-    condition     = can(regex("^(inspector|guardDuty)_findings$", var.event_pattern))
-    error_message = "Invalid event pattern"
-  }
+  type = set(string)
+#  validation {
+#    condition     = can(regex("^(?:(?:inspector|guardDuty)_findings)|auth0$", var.event_pattern))
+#    error_message = "Invalid event pattern"
+#  }
 }

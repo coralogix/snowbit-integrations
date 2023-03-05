@@ -1,12 +1,12 @@
 # API
 resource "aws_cloudwatch_event_api_destination" "this" {
-  name                = var.event_api_destination_name
+  name                = "connectionToCoralogix-${random_string.string.id}"
   connection_arn      = aws_cloudwatch_event_connection.this.arn
   http_method         = "POST"
   invocation_endpoint = lookup(var.coralogix_endpoint_map, var.coralogix_endpoint)
 }
 resource "aws_cloudwatch_event_connection" "this" {
-  name               = var.event_connection_name
+  name               = "destinationToCoralogix"
   authorization_type = "API_KEY"
   description        = "Send logs to Coralogix"
   auth_parameters {
@@ -29,15 +29,17 @@ resource "aws_cloudwatch_event_connection" "this" {
 
 # Rule
 resource "aws_cloudwatch_event_rule" "this" {
-  name           = "eventbridge-rule-to-coralogix-${random_string.string.id}"
-  event_pattern  = lookup(var.event_pattern_map, var.event_pattern)
+  for_each       = var.event_pattern
+  name           = "eventbridge-rule-to-coralogix-${each.key}-${random_string.string.id}"
+  event_pattern  = lookup(var.event_pattern_map, each.key)
   event_bus_name = "default"
   tags           = merge(var.additional_tags, {
     Terraform-Execution-ID = random_string.string.id
   })
 }
 resource "aws_cloudwatch_event_target" "this" {
-  rule      = aws_cloudwatch_event_rule.this.name
+  for_each = var.event_pattern
+  rule      = aws_cloudwatch_event_rule.this[each.key].name
   target_id = "eventbridge-target-${random_string.string.id}"
   arn       = aws_cloudwatch_event_api_destination.this.arn
   role_arn  = aws_iam_role.this.arn
