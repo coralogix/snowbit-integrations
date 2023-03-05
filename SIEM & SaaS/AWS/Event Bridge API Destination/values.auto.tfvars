@@ -3,7 +3,7 @@ event_pattern        = [ # List (even with one value) that can be either 'auth0'
   "auth0",
   "inspector_findings"
 ]
-auth0_event_bus_name = ""
+auth0_event_bus_name = ""   # When choosing 'auth0' in the event pattern
 application_name     = ""   # Logical Name for Coralogix account
 subsystem_name       = ""   # Logical Name for Coralogix account
 private_key          = ""   # The 'Send your data' API key from Coralogix account
