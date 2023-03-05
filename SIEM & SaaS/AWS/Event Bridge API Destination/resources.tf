@@ -32,7 +32,7 @@ resource "aws_cloudwatch_event_rule" "this" {
   for_each       = var.event_pattern
   name           = "eventbridge-rule-to-coralogix-${each.key}-${random_string.string.id}"
   event_pattern  = lookup(var.event_pattern_map, each.key)
-  event_bus_name = "default"
+  event_bus_name = each.key == "auth0" && length(var.auth0_event_bus_name) > 0 ? var.auth0_event_bus_name : "default"
   tags           = merge(var.additional_tags, {
     Terraform-Execution-ID = random_string.string.id
   })

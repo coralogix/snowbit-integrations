@@ -1,3 +1,6 @@
+variable "auth0_event_bus_name" {
+  type = string
+}
 variable "coralogix_endpoint_map" {
   type    = map(string)
   default = {
