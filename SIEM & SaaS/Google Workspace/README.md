@@ -11,7 +11,7 @@ This integration hold few steps in order to integrate Google Workspace audit log
 3. For finalizing the integration, have Super Admin access to Google Workspace
 
 ## Deployment
-1. Fill the required fields in the `values.auto.tf` file
+1. Fill the required fields in the `values.auto.tfvars` file
 2. For `coralogix_domain`, choose either **Europe**, **India** or **US**
 3. Optional values are:
    1. For AWS: 
