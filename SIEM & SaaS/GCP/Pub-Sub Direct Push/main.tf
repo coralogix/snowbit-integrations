@@ -13,7 +13,7 @@ variable "project_id" {
 variable "private_key" {
   type = string
   validation {
-    condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}$", var.coralogix_private_key))
+    condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}$", var.private_key))
     error_message = "The PrivateKey should be valid UUID string"
   }
 }
