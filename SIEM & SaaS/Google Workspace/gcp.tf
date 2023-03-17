@@ -163,8 +163,3 @@ output.logstash:
 systemctl restart filebeat.service
 EOT
 }
-resource "random_string" "id" {
-  length  = 6
-  upper   = false
-  special = false
-}

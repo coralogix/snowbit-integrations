@@ -68,3 +68,9 @@ variable "coralogix_company_id" {
     error_message = "Invalid company ID"
   }
 }
+
+resource "random_string" "id" {
+  length  = 6
+  upper   = false
+  special = false
+}
