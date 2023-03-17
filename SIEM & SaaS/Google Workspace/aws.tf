@@ -30,7 +30,30 @@ variable "ec2_volume_encryption" {
 variable "SSHIpAddress" {
   type = string
 }
+variable "ubuntu-amis-map" {
+  type    = map(string)
+  default = {
+    "us-east-1"      = "ami-08c40ec9ead489470",
+    "us-east-2"      = "ami-097a2df4ac947655f",
+    "us-west-1"      = "ami-02ea247e531eb3ce6",
+    "us-west-2"      = "ami-017fecd1353bcc96e",
+    "ap-south-1"     = "ami-062df10d14676e201",
+    "ap-northeast-1" = "ami-09a5c873bc79530d9",
+    "ap-northeast-2" = "ami-0e9bfdb247cc8de84",
+    "ap-northeast-3" = "ami-08c2ee02329b72f26",
+    "ap-southeast-1" = "ami-07651f0c4c315a529",
+    "ap-southeast-2" = "ami-09a5c873bc79530d9",
+    "ca-central-1"   = "ami-0a7154091c5c6623e",
+    "eu-central-1"   = "ami-0caef02b518350c8b",
+    "eu-west-1"      = "ami-096800910c1b781ba",
+    "eu-west-2"      = "ami-0f540e9f488cfa27d",
+    "eu-west-3"      = "ami-0493936afbe820b28",
+    "eu-north-1"     = "ami-0efda064d1b5e46a5",
+    "sa-east-1"      = "ami-04b3c23ec8efcc2d6"
+  }
+}
 # AWS Data --->
+data "aws_region" "current" {}
 data "aws_subnet" "filebeat_subnet" {
   count = var.subnet_id == "" ? 0 : 1
   id = var.subnet_id
@@ -41,7 +64,7 @@ data "http" "external-ip-address" {
 # AWS Resources --->
 resource "aws_instance" "filebeat_instance" {
   count = var.instance_cloud_provider == "AWS" ? 1 : 0
-  ami                         = "ami-06d94a781b544c133"
+  ami                         = lookup(var.ubuntu-amis-map, data.aws_region.current.name)
   key_name                    = var.ssh_key
   instance_type               = "t3a.small"
   associate_public_ip_address = var.public_instance
