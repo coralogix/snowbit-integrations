@@ -76,10 +76,10 @@ variable "security_group_id" {
   description = "External security group to use instead of creating a new one"
 }
 variable "SSHIpAddress" {
-  type = string
+  type        = string
   description = "The public IP address for SSH access to the EC2 instance"
   validation {
-    condition = var.SSHIpAddress == "" ? true : can(regex("^(?:\\d{1,3}\\.){3}\\d{1,3}\\/\\d{1,2}$", var.SSHIpAddress))
+    condition     = var.SSHIpAddress == "" ? true : can(regex("^(?:\\d{1,3}\\.){3}\\d{1,3}\\/\\d{1,2}$", var.SSHIpAddress))
     error_message = "IP address is not valid - expected x.x.x.x/x"
   }
 }
@@ -91,26 +91,8 @@ variable "okta_api_key" {
   type = string
 }
 variable "okta_domain" {
-  type = string
+  type        = string
   description = "for example - 'https://yourOktaDomain/api/v1/logs'"
-}
-variable "filebeat_certificates_map_url" {
-  type    = map(string)
-  default = {
-    Europe    = "https://coralogix-public.s3-eu-west-1.amazonaws.com/certificate/"
-    India     = "https://coralogix-public.s3-eu-west-1.amazonaws.com/certificate/"
-    US        = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
-    Singapore = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
-  }
-}
-variable "filebeat_certificate_map_file_name" {
-  type    = map(string)
-  default = {
-    Europe    = "Coralogix-EU.crt"
-    India     = "Coralogix-IN.pem"
-    US        = "AmazonRootCA1.pem"
-    Singapore = "AmazonRootCA1.pem"
-  }
 }
 variable "coralogix_domain" {
   type    = string
@@ -120,14 +102,9 @@ variable "coralogix_domain" {
     error_message = "Invalid Coralogix domain"
   }
 }
-variable "logstash_map" {
-  type    = map(string)
-  default = {
-    Europe    = "logstashserver.coralogix.com"
-    India     = "logstash.app.coralogix.in"
-    US        = "logstashserver.coralogix.us"
-    Singapore = "logstashserver.coralogixsg.com"
-  }
+variable "shipping_method" {
+  type    = string
+  default = "logstash"
 }
 
 # Data --->
@@ -139,17 +116,34 @@ data "http" "external-ip-address" {
   url = "http://ifconfig.me"
 }
 
-# Resources --->
-resource "aws_instance" "this" {
-  ami                         = lookup(var.ubuntu-amis-map, data.aws_region.current.name)
-  instance_type               = length(var.instanceType) > 0 ? var.instanceType : "t3a.small"
-  key_name                    = var.SSHKeyName
-  associate_public_ip_address = var.public_instance
-  subnet_id                   = var.Subnet_ID
-  vpc_security_group_ids      = [
-    var.security_group_id != "" ? var.security_group_id : aws_security_group.SecurityGroup[0].id
-  ]
-  user_data = <<EOF
+# Locals --->
+locals {
+  logstashserver_map = {
+    Europe    = "logstashserver.coralogix.com"
+    India     = "logstash.app.coralogix.in"
+    US        = "logstashserver.coralogix.us"
+    Singapore = "logstashserver.coralogixsg.com"
+  }
+  singles_map = {
+    Europe    = "https://api.coralogix.com/logs/rest/singles"
+    Europe2   = "https://api.eu2.coralogix.com/logs/rest/singles"
+    India     = "https://api.app.coralogix.in/logs/rest/singles"
+    US        = "https://api.coralogix.us/logs/rest/singles"
+    Singapore = "https://api.coralogixsg.com/logs/rest/singles"
+  }
+  filebeat_certificates_map_url = {
+    Europe    = "https://coralogix-public.s3-eu-west-1.amazonaws.com/certificate/"
+    India     = "https://coralogix-public.s3-eu-west-1.amazonaws.com/certificate/"
+    US        = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
+    Singapore = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
+  }
+  filebeat_certificate_map_file_name = {
+    Europe    = "Coralogix-EU.crt"
+    India     = "Coralogix-IN.pem"
+    US        = "AmazonRootCA1.pem"
+    Singapore = "AmazonRootCA1.pem"
+  }
+  filebeat           = <<EOF
 #!/bin/bash
 apt update
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.6.2-amd64.deb
@@ -157,7 +151,7 @@ sudo dpkg -i filebeat-8.6.2-amd64.deb
 rm filebeat-8.6.2-amd64.deb
 mkdir /etc/filebeat/certs
 cd /etc/filebeat/certs
-wget ${lookup(var.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(var.filebeat_certificate_map_file_name, var.coralogix_domain)}
+wget ${lookup(local.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}
 cd /etc/filebeat
 
 echo 'ignore_older: 3h
@@ -185,11 +179,67 @@ logging:
 
 output.logstash:
   enabled: true
-  hosts: ["${lookup(var.logstash_map, var.coralogix_domain)}:5015"]
-  tls.certificate_authorities: ["/etc/filebeat/certs/${lookup(var.filebeat_certificate_map_file_name, var.coralogix_domain)}"]
-  ssl.certificate_authorities: ["/etc/filebeat/certs/${lookup(var.filebeat_certificate_map_file_name, var.coralogix_domain)}"]' > filebeat.yml
+  hosts: ["${lookup(local.logstashserver_map, var.coralogix_domain)}:5015"]
+  tls.certificate_authorities: ["/etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]
+  ssl.certificate_authorities: ["/etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]' > filebeat.yml
 systemctl restart filebeat.service
 EOF
+  logstash           = "#!/bin/bash\napt update\nwget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-keyring.gpg\napt-get install apt-transport-https -y\necho \"deb [signed-by=/usr/share/keyrings/elastic-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main\" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list\nwget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb\ndpkg -i logstash-8.0.1-amd64.deb\n/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log\necho \"${local.logstash_conf}\" > /etc/logstash/conf.d/logstash.conf\nsystemctl restart logstash"
+  logstash_conf = <<EOF
+input {
+  okta_system_log {
+    schedule       => { every => \"30s\" }
+    limit          => 1000
+    auth_token_key => \"${var.okta_api_key}\"
+    hostname       => \"${var.okta_domain}\"
+  }
+}
+filter {
+  ruby {code => \"
+                event.set('[@metadata][event]', event.to_json)
+                \"}
+}
+
+output {
+  http {
+    url => \"${lookup(local.singles_map, var.coralogix_domain)}\"
+    http_method => \"post\"
+    headers => [\"private_key\", \"${var.coralogix_private_key}\"]
+    format => \"json_batch\"
+    codec => \"json\"
+    mapping => {
+        "applicationName" => \"${var.coralogix_application_name}\"
+        "subsystemName" => \"${var.coralogix_subsystem_name}\"
+        "computerName" => \"${base64decode("JXtob3N0fQ==")}\"
+        "text" => \"${base64decode("JXtbQG1ldGFkYXRhXVtldmVudF19")}\"
+    }
+    http_compression => true
+    automatic_retries => 5
+    retry_non_idempotent => true
+    connect_timeout => 30
+    keepalive => false
+    }
+}
+EOF
+}
+
+# Resources --->
+resource "aws_instance" "this" {
+  ami                         = lookup(var.ubuntu-amis-map, data.aws_region.current.name)
+  instance_type               = length(var.instanceType) > 0 ? var.instanceType : "t3a.small"
+  key_name                    = var.SSHKeyName
+  associate_public_ip_address = var.public_instance
+  subnet_id                   = var.Subnet_ID
+  vpc_security_group_ids      = [
+    var.security_group_id != "" ? var.security_group_id : aws_security_group.SecurityGroup[0].id
+  ]
+  user_data = var.shipping_method == "logstash" ? local.logstash : local.filebeat
+  tags      = merge(var.additional_tags,
+    {
+      Name         = "Okta to Coralogix"
+      Terraform-ID = random_string.id.id
+    }
+  )
 }
 resource "aws_security_group" "SecurityGroup" {
   count       = var.security_group_id == "" ? 1 : 0
