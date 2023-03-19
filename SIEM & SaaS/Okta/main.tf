@@ -105,6 +105,10 @@ variable "coralogix_domain" {
 variable "shipping_method" {
   type    = string
   default = "logstash"
+  validation {
+    condition = can(regex("^logstash|filebeat$", var.shipping_method))
+    error_message = "Can be 'logstash' or 'filebeat'"
+  }
 }
 
 # Data --->
