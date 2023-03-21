@@ -14,7 +14,7 @@ variable "private_key" {
   type = string
   validation {
     condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}$", var.private_key))
-    error_message = "The PrivateKey should be valid UUID string"
+    error_message = "The PrivateKey should be valid UUID string."
   }
 }
 variable "application_name" {
@@ -37,7 +37,7 @@ variable "cx_region" {
   type = string
   validation {
     condition     = can(regex("^Europe|Europe2|India|Singapore|US$", var.cx_region))
-    error_message = "Invalid Coralogix region"
+    error_message = "Invalid Coralogix region."
   }
 }
 variable "topic_name" {
@@ -50,7 +50,7 @@ variable "organization_id" {
   type = string
   validation {
     condition = can(regex("^\\d{12}$", var.organization_id))
-    error_message = "Invalid Organization ID"
+    error_message = "Invalid Organization ID."
   }
 }
 
