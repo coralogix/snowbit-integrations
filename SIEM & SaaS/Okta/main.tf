@@ -11,7 +11,7 @@ variable "coralogix_private_key" {
   type = string
   validation {
     condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}$", var.coralogix_private_key))
-    error_message = "The PrivateKey should be valid UUID string"
+    error_message = "The PrivateKey should be valid UUID string."
   }
 }
 variable "coralogix_application_name" {
@@ -24,7 +24,7 @@ variable "coralogix_company_id" {
   type = string
   validation {
     condition     = can(regex("^\\d{5,7}$", var.coralogix_company_id))
-    error_message = "Invalid company ID"
+    error_message = "Invalid company ID."
   }
 }
 variable "ubuntu-amis-map" {
@@ -67,7 +67,7 @@ variable "Subnet_ID" {
   description = "Subnet for the EC2 instance"
   validation {
     condition     = can(regex("^subnet-[0-9a-f]+$", var.Subnet_ID))
-    error_message = "Invalid subnet ID"
+    error_message = "Invalid subnet ID."
   }
 }
 variable "security_group_id" {
@@ -80,7 +80,7 @@ variable "SSHIpAddress" {
   description = "The public IP address for SSH access to the EC2 instance"
   validation {
     condition     = var.SSHIpAddress == "" ? true : can(regex("^(?:\\d{1,3}\\.){3}\\d{1,3}\\/\\d{1,2}$", var.SSHIpAddress))
-    error_message = "IP address is not valid - expected x.x.x.x/x"
+    error_message = "IP address is not valid - expected x.x.x.x/x."
   }
 }
 variable "additional_tags" {
@@ -99,7 +99,7 @@ variable "coralogix_domain" {
   default = "Europe"
   validation {
     condition     = can(regex("^(?:India|Singapore|Europe|US)$", var.coralogix_domain))
-    error_message = "Invalid Coralogix domain"
+    error_message = "Invalid Coralogix domain."
   }
 }
 variable "shipping_method" {
@@ -107,7 +107,7 @@ variable "shipping_method" {
   default = "logstash"
   validation {
     condition = can(regex("^logstash|filebeat$", var.shipping_method))
-    error_message = "Can be 'logstash' or 'filebeat'"
+    error_message = "Can be 'logstash' or 'filebeat'."
   }
 }
 
