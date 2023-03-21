@@ -7,7 +7,7 @@ variable "subnet_id" {
   type = string
   validation {
     condition     = var.subnet_id == "" ? true : can(regex("^subnet\\-[a-f0-9]+", var.subnet_id))
-    error_message = "Invalid subnet ID"
+    error_message = "Invalid subnet ID."
   }
 }
 variable "public_instance" {
@@ -17,7 +17,7 @@ variable "security_group_id" {
   type = string
   validation {
     condition     = var.security_group_id == "" ? true : can(regex("^sg\\-[a-f0-9]+", var.security_group_id))
-    error_message = "Invalid security group ID"
+    error_message = "Invalid security group ID."
   }
 }
 variable "additional_tags" {

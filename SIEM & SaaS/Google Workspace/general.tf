@@ -3,7 +3,7 @@ variable "instance_cloud_provider" {
   type = string
   validation {
     condition = var.instance_cloud_provider == "AWS" || var.instance_cloud_provider == "GCP"
-    error_message = "Invalid provided chosen"
+    error_message = "Invalid provided chosen."
   }
 }
 variable "filebeat_certificates_map_url" {
@@ -38,21 +38,21 @@ variable "coralogix_domain" {
   default = "Europe"
   validation {
     condition     = can(regex("^(?:India|Singapore|Europe|US)$", var.coralogix_domain))
-    error_message = "Invalid Coralogix domain"
+    error_message = "Invalid Coralogix domain."
   }
 }
 variable "primary_google_workspace_admin_email_address" {
   type = string
   validation {
     condition     = can(regex("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)$", var.primary_google_workspace_admin_email_address))
-    error_message = "Invalid email address"
+    error_message = "Invalid email address."
   }
 }
 variable "coralogix_private_key" {
   type = string
   validation {
     condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}$", var.coralogix_private_key))
-    error_message = "The PrivateKey should be valid UUID string"
+    error_message = "The PrivateKey should be valid UUID string."
   }
 }
 variable "coralogix_application_name" {
@@ -65,7 +65,7 @@ variable "coralogix_company_id" {
   type = string
   validation {
     condition     = can(regex("^\\d{5,7}$", var.coralogix_company_id))
-    error_message = "Invalid company ID"
+    error_message = "Invalid company ID."
   }
 }
 

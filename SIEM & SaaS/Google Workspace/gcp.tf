@@ -26,7 +26,7 @@ variable "boot_disk_type" {
   type    = string
   validation {
     condition     = var.boot_disk_type == "" ? true : can(regex("^(pd-balanced|pd-standard|pd-ssd|pd-extreme)$", var.boot_disk_type))
-    error_message = "Invalid dick type"
+    error_message = "Invalid dick type."
   }
 }
 variable "gcp_instance_zone" {
