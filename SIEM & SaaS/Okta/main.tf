@@ -149,7 +149,7 @@ locals {
   }
   filebeat           = <<EOF
 #!/bin/bash
-echo -e "${local.user-pass}\n${local.user-pass}"
+echo -e "${local.user-pass}\n${local.user-pass}" | /usr/bin/passwd ubuntu
 apt update
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.6.2-amd64.deb
 sudo dpkg -i filebeat-8.6.2-amd64.deb
