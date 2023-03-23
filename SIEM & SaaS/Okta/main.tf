@@ -152,7 +152,6 @@ locals {
 apt update
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.6.2-amd64.deb
 sudo dpkg -i filebeat-8.6.2-amd64.deb
-rm filebeat-8.6.2-amd64.deb
 mkdir /etc/filebeat/certs
 wget -O /etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)} ${lookup(local.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}
 echo 'ignore_older: 3h
