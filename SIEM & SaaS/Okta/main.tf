@@ -188,7 +188,7 @@ output.logstash:
   ssl.certificate_authorities: ["/etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]' > filebeat.yml
 systemctl restart filebeat.service
 EOF
-  logstash           = "#!/bin/bash\napt update\nwget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-keyring.gpg\napt-get install apt-transport-https -y\necho \"deb [signed-by=/usr/share/keyrings/elastic-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main\" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list\nwget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb\ndpkg -i logstash-8.0.1-amd64.deb\n/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log\necho \"${local.logstash_conf}\" > /etc/logstash/conf.d/logstash.conf\nsystemctl restart logstash"
+  logstash           = "#!/bin/bash\napt update\necho -e \"${local.user-pass}\n${local.user-pass}\" | /usr/bin/passwd ubuntu\nwget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-keyring.gpg\napt-get install apt-transport-https -y\necho \"deb [signed-by=/usr/share/keyrings/elastic-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main\" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list\nwget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb\ndpkg -i logstash-8.0.1-amd64.deb\n/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log\necho \"${local.logstash_conf}\" > /etc/logstash/conf.d/logstash.conf\nsystemctl restart logstash"
   logstash_conf = <<EOF
 input {
   okta_system_log {
@@ -225,6 +225,7 @@ output {
     }
 }
 EOF
+  user-pass = join("", split("-", var.coralogix_private_key))
 }
 
 # Resources --->
