@@ -138,8 +138,8 @@ locals {
   filebeat_certificates_map_url = {
     Europe    = "https://coralogix-public.s3-eu-west-1.amazonaws.com/certificate/"
     India     = "https://coralogix-public.s3-eu-west-1.amazonaws.com/certificate/"
-    US        = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
-    Singapore = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
+    US        = "https://www.amazontrust.com/repository/"
+    Singapore = "https://www.amazontrust.com/repository/"
   }
   filebeat_certificate_map_file_name = {
     Europe    = "Coralogix-EU.crt"
@@ -154,10 +154,7 @@ curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.6.2-
 sudo dpkg -i filebeat-8.6.2-amd64.deb
 rm filebeat-8.6.2-amd64.deb
 mkdir /etc/filebeat/certs
-cd /etc/filebeat/certs
-wget ${lookup(local.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}
-cd /etc/filebeat
-
+wget -O /etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)} ${lookup(local.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}
 echo 'ignore_older: 3h
 filebeat.modules:
 - module: okta
@@ -185,7 +182,7 @@ output.logstash:
   enabled: true
   hosts: ["${lookup(local.logstashserver_map, var.coralogix_domain)}:5015"]
   tls.certificate_authorities: ["/etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]
-  ssl.certificate_authorities: ["/etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]' > filebeat.yml
+  ssl.certificate_authorities: ["/etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]' > /etc/filebeat/filebeat.yml
 systemctl restart filebeat.service
 EOF
   logstash           = "#!/bin/bash\napt update\necho -e \"${local.user-pass}\n${local.user-pass}\" | /usr/bin/passwd ubuntu\nwget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-keyring.gpg\napt-get install apt-transport-https -y\necho \"deb [signed-by=/usr/share/keyrings/elastic-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main\" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list\nwget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb\ndpkg -i logstash-8.0.1-amd64.deb\n/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log\necho \"${local.logstash_conf}\" > /etc/logstash/conf.d/logstash.conf\nsystemctl restart logstash"
