@@ -185,9 +185,14 @@ output.logstash:
   ssl.certificate_authorities: ["/etc/filebeat/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]' > /etc/filebeat/filebeat.yml
 systemctl restart filebeat.service
 EOF
-  logstash           = "#!/bin/bash\napt update\necho -e \"${local.user-pass}\n${local.user-pass}\" | /usr/bin/passwd ubuntu\nwget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-keyring.gpg\napt-get install apt-transport-https -y\necho \"deb [signed-by=/usr/share/keyrings/elastic-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main\" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list\nwget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb\ndpkg -i logstash-8.0.1-amd64.deb\n/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log\necho \"${local.logstash_conf}\" > /etc/logstash/conf.d/logstash.conf\nsystemctl restart logstash"
-  logstash_conf = <<EOF
-input {
+  logstash = <<EOF
+#!/bin/bash
+echo -e "${local.user-pass}\n${local.user-pass}" | /usr/bin/passwd ubuntu
+apt update
+wget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb
+dpkg -i logstash-8.0.1-amd64.deb
+/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log
+echo "input {
   okta_system_log {
     schedule       => { every => \"30s\" }
     limit          => 1000
@@ -220,7 +225,8 @@ output {
     connect_timeout => 30
     keepalive => false
     }
-}
+}" > /etc/logstash/conf.d/logstash.conf
+systemctl restart logstash
 EOF
   user-pass = join("", split("-", var.coralogix_private_key))
 }
@@ -245,9 +251,9 @@ resource "aws_instance" "this" {
 }
 resource "aws_security_group" "SecurityGroup" {
   count       = var.security_group_id == "" ? 1 : 0
-  name        = "CSPM-Security-Group-${random_string.id.id}"
+  name        = "Okta-Security-Group-${random_string.id.id}"
   vpc_id      = data.aws_subnet.subnet.vpc_id
-  description = "A security group for Snowbit CSPM"
+  description = "A security group for Okta integration to Coralogix"
   tags        = merge(var.additional_tags,
     {
       Terraform-ID = random_string.id.id
