@@ -25,11 +25,6 @@ variable "jumpcloud_api_key" {
   }
 }
 
-data "http" "jumpcloud_script" {
-  count = var.jumpcloud_integration_required ? 1 : 0
-  url   = "https://raw.githubusercontent.com/coralogix/snowbit-integrations/master/SIEM%20%26%20SaaS/JumpCloud/JC-DI2SIEM.ps1"
-}
-
 locals {
   jumpcloud_conf      = <<EOF
 {
@@ -51,8 +46,8 @@ locals {
     "batch_delay_milliseconds": 100,
     "timestamp_field_name": "jc_timestamp",
     "custom_log_fields": {
-      "reqHost": "${var.jumpcloud_application_name}",
-      "customField": "${var.jumpcloud_subsystem_name}",
+      "reqHost": "${length(var.jumpcloud_application_name) > 0 ? var.jumpcloud_application_name : "JumpCloud"}",
+      "customField": "${length(var.jumpcloud_subsystem_name) > 0 ? var.jumpcloud_subsystem_name : "JumpCloud"}",
       "severity": "info"
     }
   }
@@ -65,15 +60,12 @@ wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/package
 sudo dpkg -i packages-microsoft-prod.deb
 sudo apt-get update
 sudo apt-get install -y powershell
-pwsh
-Install-Module -Name JumpCloud
-exit
-echo "${var.jumpcloud_integration_required ? data.http.jumpcloud_script[0].response_body : ""}" > /home/ubuntu/integrations/jumpcloud.ps1
-echo "${local.jumpcloud_conf}" > /home/ubuntu/integrations/jumpcloud_conf.json
-echo "{
+pwsh -command "Install-Module -Name JumpCloud -Scope AllUsers -Force"
+wget -O /home/ubuntu/integrations/jumpcloud.ps1 https://raw.githubusercontent.com/coralogix/snowbit-integrations/master/SIEM%20%26%20SaaS/JumpCloud/JC-DI2SIEM.ps1
+echo '${local.jumpcloud_conf}' > /home/ubuntu/integrations/jumpcloud_conf.json
+echo '{
     "LogLevel": "Critical"
-}" > /opt/microsoft/powershell/7/powershell.config.json
+}' > /opt/microsoft/powershell/7/powershell.config.json
 crontab -l | { cat; echo "* * * * * /usr/bin/pwsh /home/ubuntu/integrations/jumpcloud.ps1 -config_file:/home/ubuntu/integrations/jumpcloud_conf.json 2>&1"; } | crontab -
-
 EOF
 }

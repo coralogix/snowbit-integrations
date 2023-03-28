@@ -6,7 +6,7 @@ variable "ssh_key_name" {}
 variable "additional_tags" {}
 
 module "Coralogix_Integrations" {
-  source = "modules"
+  source = "./modules"
 
   // General information
   coralogix_private_key = var.coralogix_private_key

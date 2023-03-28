@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4"
     }
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4"
+    }
   }
 }
 
@@ -146,17 +150,15 @@ locals {
 // Docker installation -->
 locals {
   docker_install = <<EOF
-#!/bin/bash
 sudo apt-get remove docker docker-engine docker.io containerd runc
-sudo apt-get update
 sudo apt-get install ca-certificates curl gnupg lsb-release -y
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
-sudo groupadd docker
-sudo usermod -aG docker $USER
+sudo usermod -aG docker ubuntu
+sleep 2
 newgrp docker
 EOF
 }
@@ -184,14 +186,14 @@ resource "aws_instance" "this" {
   tags = merge(var.aws_additional_tags,
     {
       Name         = "Integrations to Coralogix"
-      Terraform-ID = random_string.this[0].id
+      Terraform-execution-ID = random_string.this[0].id
     }
   )
   user_data = <<EOF
 #!/bin/bash
 echo -e "${local.user_instance_pass}\n${local.user_instance_pass}" | /usr/bin/passwd ubuntu
 apt update
-${local.docker_install}
+${var.okta_integration_required || var.crowdstrike_integration_required || var.google_workspace_integration_required ? local.docker_install : ""}
 mkdir /home/ubuntu/integrations
 ${var.okta_integration_required ? local.okta_user_data : ""}
 ${var.crowdstrike_integration_required ? local.crowdstrike_user_data : ""}
