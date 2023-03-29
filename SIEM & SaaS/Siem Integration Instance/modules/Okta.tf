@@ -62,8 +62,7 @@ output {
     connect_timeout => 30
     keepalive => false
     }
-}" > /etc/logstash/conf.d/logstash.conf
-systemctl restart logstash
+}
 EOF
   okta_user_data     = <<EOF
 # Okta -->
