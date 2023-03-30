@@ -109,7 +109,7 @@ data "http" "external_ip_address" {
 
 # Locals
 locals {
-  singles_map = {
+  domain_endpoint_map = {
     Europe    = "api.coralogix.com"
     Europe2   = "api.eu2.coralogix.com"
     India     = "api.app.coralogix.in"
@@ -192,7 +192,7 @@ resource "aws_instance" "this" {
   user_data = <<EOF
 #!/bin/bash
 echo -e "${local.user_instance_pass}\n${local.user_instance_pass}" | /usr/bin/passwd ubuntu
-apt update
+apt-get update
 ${var.okta_integration_required || var.crowdstrike_integration_required || var.google_workspace_integration_required ? local.docker_install : ""}
 mkdir /home/ubuntu/integrations
 ${var.okta_integration_required ? local.okta_user_data : ""}
@@ -237,4 +237,25 @@ resource "random_string" "this" {
   length  = 6
   special = false
   upper   = false
+}
+
+## outputs
+output "AWS-Instance" {
+  value = {
+    Subnet = var.aws_subnet_id
+    SSH_Key = var.aws_ssh_key_name
+    Additional_Tags = var.aws_additional_tags
+    Region = data.aws_region.current.name
+  }
+}
+output "Coralogix" {
+  value = {
+    Domain = lookup(local.domain_endpoint_map, var.coralogix_domain)
+    Integrations_to_Deploy = {
+      Okta = var.okta_integration_required ? "Yes" : "Not required"
+      CrowdStrike = var.crowdstrike_integration_required ? "Yes" : "No"
+      Google_Workspace = var.google_workspace_integration_required ? "Yes" : "No"
+      JumpCloud = var.jumpcloud_integration_required ? "Yes" : "No"
+    }
+  }
 }

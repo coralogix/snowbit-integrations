@@ -4,9 +4,9 @@ coralogix_domain      = ""         # 'Europe', 'Europe2', 'India', 'Singapore' o
 coralogix_company_id  = ""
 
 # AWS
-subnet_id       = ""
-ssh_key_name    = ""
-additional_tags = {}
+aws_subnet_id       = ""
+aws_ssh_key_name    = ""
+aws_additional_tags = {}
 
 # Okta
 okta_application_name = ""

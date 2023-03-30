@@ -1,9 +1,9 @@
 variable "coralogix_private_key" {}
 variable "coralogix_domain" {}
 variable "coralogix_company_id" {}
-variable "subnet_id" {}
-variable "ssh_key_name" {}
-variable "additional_tags" {}
+variable "aws_subnet_id" {}
+variable "aws_ssh_key_name" {}
+variable "aws_additional_tags" {}
 
 module "Coralogix_Integrations" {
   source = "./modules"
@@ -12,8 +12,9 @@ module "Coralogix_Integrations" {
   coralogix_private_key = var.coralogix_private_key
   coralogix_domain      = var.coralogix_domain
   coralogix_company_id  = var.coralogix_company_id
-  aws_subnet_id         = var.subnet_id
-  aws_ssh_key_name      = var.ssh_key_name
+  aws_subnet_id         = var.aws_subnet_id
+  aws_ssh_key_name      = var.aws_ssh_key_name
+  aws_additional_tags   = var.aws_additional_tags
 
   // Okta
   okta_integration_required = false

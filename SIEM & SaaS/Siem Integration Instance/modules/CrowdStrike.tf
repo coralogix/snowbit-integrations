@@ -63,7 +63,7 @@ locals {
 [OUTPUT]
     Name                  http
     Match                 *
-    Host                  ${lookup(local.singles_map, var.coralogix_domain)}
+    Host                  ${lookup(local.domain_endpoint_map, var.coralogix_domain)}
     Port                  443
     URI                   /logs/rest/singles
     Format                json_lines
@@ -96,7 +96,7 @@ EOF
 EOF
   crowdstrike_user_data       = <<EOF
 # CrowdStrike -->
-wget https://snowbit-shared-resources.s3.eu-west-1.amazonaws.com/crowdstrike-cs-falconhoseclient_2.12.0_amd64.deb
+wget https://snowbit-shared-resources.s3.eu-west-1.amazonaws.com/crowdstrike-cs-falconhoseclient_2.14.0_amd64.deb
 sudo dpkg -i crowdstrike-cs-falconhoseclient_2.12.0_amd64.deb
 echo '${local.crowdstrike_fluent-bit_conf}' > /home/ubuntu/integrations/crowdstrike.conf
 echo '${local.crowdstrike_parser_file}' > /home/ubuntu/integrations/crowdstrike_parsers.conf

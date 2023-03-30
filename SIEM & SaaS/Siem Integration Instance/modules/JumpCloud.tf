@@ -36,7 +36,7 @@ locals {
   },
   "siem": {
     "format": "json_lines",
-    "url": "https://${lookup(local.singles_map, var.coralogix_domain)}/logs/datastream",
+    "url": "https://${lookup(local.domain_endpoint_map, var.coralogix_domain)}/logs/datastream",
     "method": "POST",
     "headers": {
       "private_key": "${var.coralogix_private_key}"

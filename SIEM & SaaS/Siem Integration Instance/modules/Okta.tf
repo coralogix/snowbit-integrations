@@ -45,7 +45,7 @@ filter {
 
 output {
   http {
-    url => \"${lookup(local.singles_map, var.coralogix_domain)}\"
+    url => \"${lookup(local.domain_endpoint_map, var.coralogix_domain)}\"
     http_method => \"post\"
     headers => [\"private_key\", \"${var.coralogix_private_key}\"]
     format => \"json_batch\"
