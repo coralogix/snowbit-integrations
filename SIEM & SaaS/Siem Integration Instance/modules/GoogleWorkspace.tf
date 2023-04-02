@@ -144,6 +144,7 @@ output.logstash:
   ssl.certificate_authorities: ["/usr/share/filebeat/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}"]
 EOF
   google_workspace_user_data = <<EOF
+# Google Workspace -->
 mkdir /home/ubuntu/integrations/certs
 wget -O /home/ubuntu/integrations/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)} ${lookup(local.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}
 echo '${var.google_workspace_integration_required ? base64decode(google_service_account_key.service_account_key[0].private_key) : ""}' > /home/ubuntu/integrations/google_credential_file.json
