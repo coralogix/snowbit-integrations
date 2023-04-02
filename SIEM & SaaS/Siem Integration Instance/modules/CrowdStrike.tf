@@ -104,8 +104,9 @@ sed -i '3s/.*/api_url = https:\/\/${var.crowdstrike_api_url}\/sensors\/entities\
 sed -i '4s/.*/request_token_url = https:\/\/${var.crowdstrike_api_url}\/oauth2\/token/' /opt/crowdstrike/etc/cs.falconhoseclient.cfg
 sed -i '11s/.*/client_id = ${var.crowdstrike_client_id}/' /opt/crowdstrike/etc/cs.falconhoseclient.cfg
 sed -i '13s/.*/client_secret = ${var.crowdstrike_client_secret}/' /opt/crowdstrike/etc/cs.falconhoseclient.cfg
-docker run -d --name crowdstrike -v /home/ubuntu/integrations/crowdstrike.conf:fluentbit/etc/fluent-bit.conf \
--v /home/ubuntu/integrations/crowdstrike_parsers.conf:fluentbit/etc/parsers.conf fluent/fluent-bit \
+docker run -d --name crowdstrike \
+-v /home/ubuntu/integrations/crowdstrike.conf:/fluent-bit/etc/fluent-bit.conf \
+-v /home/ubuntu/integrations/crowdstrike_parsers.conf:/fluent-bit/etc/parsers.conf fluent/fluent-bit \
 -v /var/log/crowdstrike/falconhoseclient/output:/fluent-bit/cs-log.log fluent/fluent-bit
 EOF
 }
