@@ -192,7 +192,7 @@ resource "aws_instance" "this" {
 #!/bin/bash
 echo -e "${local.user_instance_pass}\n${local.user_instance_pass}" | /usr/bin/passwd ubuntu
 apt-get update
-${var.okta_integration_required || var.crowdstrike_integration_required || var.google_workspace_integration_required ? local.docker_install : ""}
+${var.crowdstrike_integration_required || var.google_workspace_integration_required ? local.docker_install : ""}
 mkdir /home/ubuntu/integrations
 ${var.okta_integration_required ? local.okta_user_data : ""}
 ${var.crowdstrike_integration_required ? local.crowdstrike_user_data : ""}

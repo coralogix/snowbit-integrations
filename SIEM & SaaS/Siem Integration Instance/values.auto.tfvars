@@ -11,7 +11,7 @@ aws_additional_tags = {}
 # Okta
 okta_application_name = ""
 okta_subsystem_name   = ""
-okta_api_key          = ""
+okta_api_token        = ""
 okta_domain           = ""
 
 # CrowdStrike
@@ -27,12 +27,12 @@ jumpcloud_subsystem_name   = ""
 jumpcloud_api_key          = ""
 
 # Google Workspace
-google_workspace_application_name            = ""
-google_workspace_subsystem_name              = ""
-google_workspace_primary_admin_email_address = ""
-google_workspace_existing_project_id                          = ""                      # Optional when filling new project information below
-google_workspace_service_account_display_name                 = ""
+google_workspace_application_name             = ""
+google_workspace_subsystem_name               = ""
+google_workspace_primary_admin_email_address  = ""
+google_workspace_existing_project_id          = ""                      # Optional when filling new project information below
+google_workspace_service_account_display_name = ""
 // When creating a new project in GCP for the integration
-google_workspace_new_project_name                             = ""
-google_workspace_new_project_organization                     = ""                      # When creating a new project
-google_workspace_new_project_billing_account                  = ""                      # When creating a new project
+google_workspace_new_project_name             = ""
+google_workspace_new_project_organization     = ""                      # When creating a new project
+google_workspace_new_project_billing_account  = ""                      # When creating a new project

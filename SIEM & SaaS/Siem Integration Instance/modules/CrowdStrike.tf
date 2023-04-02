@@ -95,7 +95,11 @@ EOF
     format json
 EOF
   crowdstrike_user_data       = <<EOF
+
+#
 # CrowdStrike -->
+#
+
 wget https://snowbit-shared-resources.s3.eu-west-1.amazonaws.com/crowdstrike-cs-falconhoseclient_2.14.0_amd64.deb
 sudo dpkg -i crowdstrike-cs-falconhoseclient_2.12.0_amd64.deb
 echo '${local.crowdstrike_fluent-bit_conf}' > /home/ubuntu/integrations/crowdstrike.conf

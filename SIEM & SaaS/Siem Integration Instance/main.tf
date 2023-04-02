@@ -17,10 +17,10 @@ module "Coralogix_Integrations" {
   aws_additional_tags   = var.aws_additional_tags
 
   // Okta
-  okta_integration_required = false
+  okta_integration_required = true
   okta_application_name     = var.okta_application_name
   okta_subsystem_name       = var.okta_subsystem_name
-  okta_api_key              = var.okta_api_key
+  okta_api_token            = var.okta_api_token
   okta_domain               = var.okta_domain
 
   // Google Workspace
@@ -52,7 +52,7 @@ module "Coralogix_Integrations" {
 
 variable "okta_application_name" {}
 variable "okta_subsystem_name" {}
-variable "okta_api_key" {}
+variable "okta_api_token" {}
 variable "okta_domain" {}
 variable "crowdstrike_application_name" {}
 variable "crowdstrike_subsystem_name" {}

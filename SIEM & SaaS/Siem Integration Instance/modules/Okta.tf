@@ -16,7 +16,7 @@ variable "okta_subsystem_name" {
     error_message = "Invalid subsystem name."
   }
 }
-variable "okta_api_key" {
+variable "okta_api_token" {
   type = string
 }
 variable "okta_domain" {
@@ -26,14 +26,13 @@ variable "okta_domain" {
 
 locals {
   okta_logstash_conf = <<EOF
-wget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb
-dpkg -i logstash-8.0.1-amd64.deb
-/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log
-echo "input {
+input {
   okta_system_log {
-    schedule       => { every => \"30s\" }
+    schedule       => {
+      every => \"30s\"
+    }
     limit          => 1000
-    auth_token_key => \"${var.okta_api_key}\"
+    auth_token_key => \"${var.okta_api_token}\"
     hostname       => \"${var.okta_domain}\"
   }
 }
@@ -45,28 +44,35 @@ filter {
 
 output {
   http {
-    url => \"${lookup(local.domain_endpoint_map, var.coralogix_domain)}\"
+    url => \"https://${lookup(local.domain_endpoint_map, var.coralogix_domain)}/logs/rest/singles\"
     http_method => \"post\"
     headers => [\"private_key\", \"${var.coralogix_private_key}\"]
     format => \"json_batch\"
     codec => \"json\"
     mapping => {
-        "applicationName" => \"${var.okta_application_name}\"
-        "subsystemName" => \"${var.okta_subsystem_name}\"
-        "computerName" => \"${base64decode("JXtob3N0fQ==")}\"
-        "text" => \"${base64decode("JXtbQG1ldGFkYXRhXVtldmVudF19")}\"
+      \"applicationName\" => \"${length(var.okta_application_name) > 0 ? var.okta_application_name : "Okta"}\"
+      \"subsystemName\" => \"${length(var.okta_subsystem_name) > 0 ? var.okta_subsystem_name : "Okta"}\"
+      \"computerName\" => \"${base64decode("JXtob3N0fQ==")}\"
+      \"text\" => \"${base64decode("JXtbQG1ldGFkYXRhXVtldmVudF19")}\"
     }
     http_compression => true
     automatic_retries => 5
     retry_non_idempotent => true
     connect_timeout => 30
     keepalive => false
-    }
+  }
 }
 EOF
   okta_user_data     = <<EOF
+
+#
 # Okta -->
-echo '${local.okta_logstash_conf}' > /home/ubuntu/integrations/okta.conf
-docker run -d --name okta -v /home/ubuntu/integrations/okta.conf:/usr/share/logstash/pipeline/logstash.conf docker.elastic.co/logstash/logstash:8.0.1
+#
+
+wget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-amd64.deb
+dpkg -i logstash-8.0.1-amd64.deb
+/usr/share/logstash/bin/logstash-plugin install logstash-input-okta_system_log
+echo "${local.okta_logstash_conf}" > /etc/logstash/conf.d/logstash.conf
+systemctl start logstash
 EOF
 }
