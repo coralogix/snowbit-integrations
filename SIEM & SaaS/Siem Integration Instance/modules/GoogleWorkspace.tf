@@ -125,8 +125,8 @@ fields_under_root: true
 fields:
   PRIVATE_KEY: "${var.coralogix_private_key}"
   COMPANY_ID: ${var.coralogix_company_id}
-  APP_NAME: "${var.google_workspace_application_name}"
-  SUB_SYSTEM: "${var.google_workspace_subsystem_name}"
+  APP_NAME: "${length(var.google_workspace_application_name) > 0 ? var.google_workspace_application_name : "Google-Workspace"}"
+  SUB_SYSTEM: "${length(var.google_workspace_subsystem_name) > 0 ? var.google_workspace_subsystem_name : "Google-Workspace"}"
 
 logging:
   level: debug
@@ -145,9 +145,9 @@ output.logstash:
 EOF
   google_workspace_user_data = <<EOF
 mkdir /home/ubuntu/integrations/certs
-wget -O /home/ubuntu/integrations/certs ${lookup(local.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}
+wget -O /home/ubuntu/integrations/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)} ${lookup(local.filebeat_certificates_map_url, var.coralogix_domain)}${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}
 echo '${var.google_workspace_integration_required ? base64decode(google_service_account_key.service_account_key[0].private_key) : ""}' > /home/ubuntu/integrations/google_credential_file.json
-echo '${local.google_workspace_conf}' >  > /home/ubuntu/integrations/google_workspace.yml
+echo '${local.google_workspace_conf}' > /home/ubuntu/integrations/google_workspace.yml
 docker run -d --name google_workspace \
 -v /home/ubuntu/integrations/certs/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)}:/usr/share/filebeat/${lookup(local.filebeat_certificate_map_file_name, var.coralogix_domain)} \
 -v /home/ubuntu/integrations/google_workspace.yml:/usr/share/filebeat/filebeat.yml \
@@ -181,10 +181,5 @@ resource "google_project_service" "workspaces_APIs" {
     if var.google_workspace_integration_required
   }
   service = each.value
-  project = length(var.google_workspace_existing_project_id) > 0 ? var.google_workspace_existing_project_id : google_project.new_project[0].project_id
-}
-resource "google_project_service" "Compute_Engine_API" {
-  count   = var.google_workspace_integration_required ? 1 : 0
-  service = "compute.googleapis.com"
   project = length(var.google_workspace_existing_project_id) > 0 ? var.google_workspace_existing_project_id : google_project.new_project[0].project_id
 }
