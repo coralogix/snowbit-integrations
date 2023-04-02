@@ -57,8 +57,8 @@ locals {
 [FILTER]
     Name    modify
     Match   *
-    Add    applicationName ${var.crowdstrike_application_name}
-    Add    subsystemName ${var.crowdstrike_subsystem_name}
+    Add    applicationName ${length(var.crowdstrike_application_name) > 0 ? var.crowdstrike_application_name : "CrowdStrike"}
+    Add    subsystemName ${length(var.crowdstrike_subsystem_name) > 0 ? var.crowdstrike_subsystem_name : "CrowdStrike"}
     Add    computerName CrowdStrike
 [OUTPUT]
     Name                  http
