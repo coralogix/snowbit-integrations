@@ -214,6 +214,6 @@ for key, value in data.items():
 """
         with open(f"/home/ubuntu/{key}.conf", "w") as file:
             file.write(conf)
-        command = f"docker run -d --name {key} -p {start_port}:{start_port} -v /home/ubuntu/{key}.conf:/fluentd/etc/fluent.conf fluent/fluentd:edge-debian"
+        command = f"docker run -d --name {key} -p {start_port}:{start_port}/udp -v /home/ubuntu/{key}.conf:/fluentd/etc/fluent.conf fluent/fluentd:edge-debian"
         subprocess.call(command, shell=True)
         start_port += 1
