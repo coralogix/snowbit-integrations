@@ -7,7 +7,6 @@ args_parser.add_argument("--api_key", required=True, type=str, default=0)
 args_parser.add_argument("--domain", required=True, type=str, default="domain-test")
 args = args_parser.parse_args()
 
-# input_json = ""
 with open("/home/ubuntu/shipper_details.json", "r") as f:
     input_json = f.read()
 
