@@ -19,7 +19,7 @@ for key, value in data.items():
         conf = f"""<source>
     @type tail
     @label @CORALOGIX
-    path /fluentd/file.log
+    path /fluentd/log/file.log
     pos_file /fluentd/file.pos
     tag cx.file
     <parse>
@@ -62,7 +62,7 @@ for key, value in data.items():
 """
         with open(f"/home/ubuntu/{key}.conf", "w") as file:
             file.write(conf)
-        command = f"docker run -d --name {key} -v {value['log_file_path']}:/fluentd/file.log -v /home/ubuntu/{key}.conf:/fluentd/etc/fluent.conf fluent/fluentd:edge-debian"
+        command = f"docker run -d --name {key} -v {value['log_file_path']}:/fluentd/log/file.log -v /home/ubuntu/{key}.conf:/fluentd/etc/fluent.conf fluent/fluentd:edge-debian"
         subprocess.call(command, shell=True)
     elif shipper_type == "http":
         conf = f"""<source>
