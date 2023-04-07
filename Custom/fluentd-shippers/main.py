@@ -12,7 +12,7 @@ with open("/home/ubuntu/shipper_details.json", "r") as f:
     input_json = f.read()
 
 data = json.loads(input_json)
-start_port = 5987
+start_port = 5980
 
 for key, value in data.items():
     shipper_type = value["type"]
@@ -112,7 +112,7 @@ for key, value in data.items():
             file.write(conf)
         command = f"docker run -d --name {key} -p {start_port}:{start_port} -v /home/ubuntu/{key}.conf:/fluentd/etc/fluent.conf fluent/fluentd:edge-debian"
         subprocess.call(command, shell=True)
-        start_port += 1
+        start_port += 5
     elif shipper_type == "tcp":
         conf = f"""<source>
     @type tcp
@@ -164,7 +164,7 @@ for key, value in data.items():
             file.write(conf)
         command = f"docker run -d --name {key} -p {start_port}:{start_port} -v /home/ubuntu/{key}.conf:/fluentd/etc/fluent.conf fluent/fluentd:edge-debian"
         subprocess.call(command, shell=True)
-        start_port += 1
+        start_port += 5
     elif shipper_type == "udp":
         conf = f"""<source>
     @type udp
@@ -216,4 +216,4 @@ for key, value in data.items():
             file.write(conf)
         command = f"docker run -d --name {key} -p {start_port}:{start_port}/udp -v /home/ubuntu/{key}.conf:/fluentd/etc/fluent.conf fluent/fluentd:edge-debian"
         subprocess.call(command, shell=True)
-        start_port += 1
+        start_port += 5
