@@ -23,13 +23,14 @@ variable "request" {
   }))
   validation {
     condition = alltrue([
-      for types in var.request : contains(["http", "tcp", "udp"], types.type)
+      for types in var.request : contains(["http", "tcp", "udp", "file"], types.type)
     ])
     error_message = "Type key must be either 'http', 'tcp', udp, or 'file'."
   }
 }
 variable "security_group_id" {
   type = string
+  default = ""
   validation {
     condition     = var.security_group_id == "" ? true : can(regex("^sg\\-[a-f0-9]+", var.security_group_id))
     error_message = "Invalid security group ID."
@@ -48,9 +49,11 @@ variable "additional_tags" {
 }
 variable "SSHIpAddress" {
   type = string
+  default = ""
 }
 variable "instance_type" {
   type = string
+  default = ""
 }
 variable "ssh_key" {
   type    = string
@@ -58,9 +61,11 @@ variable "ssh_key" {
 }
 variable "ec2_volume_encryption" {
   type = bool
+  default = true
 }
 variable "public_instance" {
   type = bool
+  default = true
 }
 
 data "http" "external-ip-address" {
@@ -184,8 +189,4 @@ resource "random_string" "id" {
   length  = 6
   upper   = false
   special = false
-}
-
-output "ip" {
-  value = aws_instance.this.public_ip
 }
