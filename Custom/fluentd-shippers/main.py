@@ -172,7 +172,7 @@ for key, value in data.items():
     bind 0.0.0.0
     body_size_limit 32m
     keepalive_timeout 10s
-    tag cx.tcp
+    tag cx.udp
     <parse>
         @type none
     </parse>
