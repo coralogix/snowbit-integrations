@@ -15,11 +15,13 @@ variable "coralogix_domain" {
 }
 variable "request" {
   type = map(object({
-    type          = string
-    app_name      = string
-    sub_name      = string
-    format        = string
-    log_file_path = optional(string)
+    type              = string
+    app_name          = string
+    sub_name          = string
+    format            = string
+    log_file_path     = optional(string)
+    port_to_listen    = optional(string)
+    sender_ip_address = optional(string)
   }))
   validation {
     condition = alltrue([
@@ -29,7 +31,7 @@ variable "request" {
   }
 }
 variable "security_group_id" {
-  type = string
+  type    = string
   default = ""
   validation {
     condition     = var.security_group_id == "" ? true : can(regex("^sg\\-[a-f0-9]+", var.security_group_id))
@@ -48,11 +50,11 @@ variable "additional_tags" {
   default = {}
 }
 variable "SSHIpAddress" {
-  type = string
+  type    = string
   default = ""
 }
 variable "instance_type" {
-  type = string
+  type    = string
   default = ""
 }
 variable "ssh_key" {
@@ -60,11 +62,11 @@ variable "ssh_key" {
   default = ""
 }
 variable "ec2_volume_encryption" {
-  type = bool
+  type    = bool
   default = true
 }
 variable "public_instance" {
-  type = bool
+  type    = bool
   default = true
 }
 
@@ -135,14 +137,14 @@ resource "aws_instance" "this" {
   security_groups             = [
     length(var.security_group_id) > 0 ? var.security_group_id : aws_security_group.SecurityGroup[0].id
   ]
-  user_data                   = <<EOF
+  user_data = <<EOF
 #!/bin/bash
 ${local.docker_install}
 echo '${jsonencode(var.request)}' > /home/ubuntu/shipper_details.json
 wget -O /home/ubuntu/script.py https://raw.githubusercontent.com/coralogix/snowbit-integrations/master/Custom/fluentd-shippers/main.py
 python3 /home/ubuntu/script.py --api_key ${var.coralogix_private_key} --domain ${lookup(local.coralogix_domains, var.coralogix_domain)}
 EOF
-  tags                        = merge(var.additional_tags, {
+  tags      = merge(var.additional_tags, {
     Terraform-ID = random_string.id.id
     Name         = "FluentD shipper(s) to Coralogix"
   })
@@ -164,17 +166,22 @@ resource "aws_security_group" "SecurityGroup" {
   tags        = merge(var.additional_tags, {
     Terraform-ID = random_string.id.id
   })
+  dynamic "ingress" {
+    for_each = var.request.port_to_listen
+    content {
+      cidr_blocks = [var.request.sender_ip_address]
+      from_port   = var.request.port_to_listen
+      to_port     = var.request.port_to_listen
+      protocol    = var.request.type == "tcp" || var.request.type == "udp" ? var.request.type : "-1"
+      self        = false
+    }
+  }
   ingress {
     description = var.SSHIpAddress == "0.0.0.0/0" ?  "SSH from the world" : length(var.SSHIpAddress) > 0 ? "SSH from user provided IP - ${var.SSHIpAddress}" : "SSH from the creators public IP - ${data.http.external-ip-address.response_body}/32"
-    cidr_blocks = [
-      length(var.SSHIpAddress) > 0 ? var.SSHIpAddress : "${data.http.external-ip-address.response_body}/32"
-    ]
+    cidr_blocks = [length(var.SSHIpAddress) > 0 ? var.SSHIpAddress : "${data.http.external-ip-address.response_body}/32"]
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    ipv6_cidr_blocks = []
-    prefix_list_ids  = []
-    security_groups  = []
     self             = false
   }
   egress {
