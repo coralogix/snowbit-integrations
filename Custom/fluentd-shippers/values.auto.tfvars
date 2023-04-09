@@ -1,6 +1,6 @@
 request = {
   container-1 = {    // Copy and paste as much as needed
-    type     = ""                                # 'tcp', 'udp' or 'http'
+    type     = ""                                # 'tcp', 'udp', 'file', or 'http'
     app_name = ""
     sub_name = ""
     format   = "none"                           # Change to json if needed
