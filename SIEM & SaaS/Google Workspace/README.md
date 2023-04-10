@@ -12,7 +12,7 @@ This integration hold few steps in order to integrate Google Workspace audit log
 
 ## Deployment
 1. Fill the required fields in the `values.auto.tfvars` file
-2. For `coralogix_domain`, choose either **Europe**, **India** or **US**
+2. For `coralogix_domain`, choose either **Europe**, **India**, **Singapore** or **US**
 3. Optional values are:
    1. For AWS: 
       1. `security_group_id` - When not provided, Terraform will create a new security group
