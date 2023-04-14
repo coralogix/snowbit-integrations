@@ -58,7 +58,6 @@ EOF
   }]
 }
 EOF
-
     ecr_image_scan = <<EOF
 {
   "source": ["aws.ecr"],
