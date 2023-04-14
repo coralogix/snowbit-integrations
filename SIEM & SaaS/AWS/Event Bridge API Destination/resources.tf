@@ -3,7 +3,7 @@ resource "aws_cloudwatch_event_api_destination" "this" {
   name                = "connectionToCoralogix-${random_string.string.id}"
   connection_arn      = aws_cloudwatch_event_connection.this.arn
   http_method         = "POST"
-  invocation_endpoint = lookup(var.coralogix_endpoint_map, var.coralogix_endpoint)
+  invocation_endpoint = lookup(local.coralogix_endpoint_map, var.coralogix_endpoint)
 }
 resource "aws_cloudwatch_event_connection" "this" {
   name               = "destinationToCoralogix"

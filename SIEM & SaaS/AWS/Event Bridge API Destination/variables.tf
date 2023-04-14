@@ -1,16 +1,6 @@
 variable "custom_event_bus_name" {
   type = string
 }
-variable "coralogix_endpoint_map" {
-  type    = map(string)
-  default = {
-    Europe    = "https://aws-events.coralogix.com/aws/event"
-    Europe2   = "https://aws-events.eu2.coralogix.com/aws/event"
-    India     = "https://aws-events.coralogix.in/aws/event"
-    Singapore = "https://aws-events.coralogixsg.com/aws/event"
-    US        = "https://aws-events.coralogix.us/aws/event"
-  }
-}
 variable "coralogix_endpoint" {
   type = string
   validation {
@@ -64,5 +54,12 @@ EOF
   "detail-type": ["ECR Image Scan"]
 }
 EOF
+  }
+  coralogix_endpoint_map = {
+    Europe    = "https://aws-events.coralogix.com/aws/event"
+    Europe2   = "https://aws-events.eu2.coralogix.com/aws/event"
+    India     = "https://aws-events.coralogix.in/aws/event"
+    Singapore = "https://aws-events.coralogixsg.com/aws/event"
+    US        = "https://aws-events.coralogix.us/aws/event"
   }
 }
