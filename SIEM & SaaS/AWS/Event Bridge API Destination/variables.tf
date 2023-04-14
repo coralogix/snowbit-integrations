@@ -1,4 +1,4 @@
-variable "auth0_event_bus_name" {
+variable "custom_event_bus_name" {
   type = string
 }
 variable "coralogix_endpoint_map" {
@@ -34,9 +34,11 @@ variable "private_key" {
 variable "additional_tags" {
   type = map(string)
 }
-variable "event_pattern_map" {
-  type    = map(string)
-  default = {
+variable "event_pattern" {
+  type = set(string)
+}
+locals {
+  event_pattern_map = {
     inspector_findings = <<EOF
 {
   "source": ["aws.inspector2"],
@@ -49,19 +51,19 @@ EOF
   "detail-type": ["GuardDuty Finding"]
 }
 EOF
-    auth0 = <<EOF
+    auth0              = <<EOF
 {
   "source": [{
     "prefix": "aws.partner/auth0.com"
   }]
 }
 EOF
-  }
+
+    ecr_image_scan = <<EOF
+{
+  "source": ["aws.ecr"],
+  "detail-type": ["ECR Image Scan"]
 }
-variable "event_pattern" {
-  type = set(string)
-#  validation {
-#    condition     = can(regex("^(?:(?:inspector|guardDuty)_findings)|auth0$", var.event_pattern))
-#    error_message = "Invalid event pattern"
-#  }
+EOF
+  }
 }
