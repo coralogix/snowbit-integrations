@@ -80,9 +80,13 @@ variable "cortex_sending_port" {
     error_message = "Invalid port selected."
   }
 }
-variable "cortex_sending_ip" {
+variable "cortex_sending_region" {
   type    = string
-  default = "0.0.0.0"
+  description = "The region the Cortex is located"
+  validation {
+    condition = can(regex("^Australia|Canada|France|Germany|India|Italy|Japan|Netherlands-Europe|Singapore|Spain|Switzerland|UnitedKingdom|United-States-Americas|United-States-Government$", var.cortex_sending_region))
+    error_message = "Cortex region can be 'Australia', 'Canada', 'France', 'Germany', 'India', 'Italy', 'Japan', 'Netherlands-Europe', 'Singapore', 'Spain', 'Switzerland', 'UnitedKingdom', 'United-States-Americas' or 'United-States-Government'."
+  }
 }
 
 // Fluent-D
@@ -103,6 +107,22 @@ locals {
     Singapore = "coralogixsg.com"
     US        = "coralogix.us"
   }
+  cortex_ip_address = {
+    Australia                = "35.244.108.240/28"
+    Canada                   = "34.95.59.80/28"
+    France                   = "34.155.98.0/28"
+    Germany                  = "35.246.195.240/28"
+    India                    = "35.244.35.240/28"
+    Italy                    = "34.154.10.144/28"
+    Japan                    = "34.84.94.80/28"
+    Netherlands-Europe       = "34.90.138.80/28"
+    Singapore                = "34.87.142.80/28"
+    Spain                    = "34.175.10.160/28"
+    Switzerland              = "34.65.166.64/28"
+    UnitedKingdom            = "35.246.51.240/28"
+    United-States-Americas   = "34.67.106.64/28"
+    United-States-Government = "34.67.50.64/28"
+  }
   fluentd = {
     input = {
       udp  = <<EOF
@@ -110,7 +130,7 @@ locals {
     @type udp
     @label @CORALOGIX
     port ${var.cortex_sending_port}
-    bind ${length(var.cortex_sending_ip) > 0 ? var.cortex_sending_ip : "0.0.0.0"}
+    bind ${lookup(local.cortex_ip_address, var.cortex_sending_region)}
     body_size_limit 32m
     tag cx.udp
     <parse>
@@ -123,7 +143,7 @@ EOF
     @type tcp
     @label @CORALOGIX
     port ${var.cortex_sending_port}
-    bind ${length(var.cortex_sending_ip) > 0 ? var.cortex_sending_ip : "0.0.0.0"}
+    bind ${lookup(local.cortex_ip_address, var.cortex_sending_region)}
     body_size_limit 32m
     tag cx.tcp
     <parse>
@@ -136,7 +156,7 @@ EOF
     @type http
     @label @CORALOGIX
     port ${var.cortex_sending_port}
-    bind ${length(var.cortex_sending_ip) > 0 ? var.cortex_sending_ip : "0.0.0.0"}
+    bind ${lookup(local.cortex_ip_address, var.cortex_sending_region)}
     body_size_limit 32m
     keepalive_timeout 10s
 </source>
@@ -255,8 +275,8 @@ resource "aws_security_group" "this" {
     self             = false
   }
   ingress {
-    description = length(var.cortex_sending_ip) > 0 ? "Allow access to Cortex IP only on port ${var.cortex_sending_port}" : "Allow any access on port ${var.cortex_sending_port}"
-    cidr_blocks = [length(var.cortex_sending_ip) > 0 ? "${var.cortex_sending_ip}/32" : "0.0.0.0/0"]
+    description = "Allow access to Cortex IP only on ${lookup(local.cortex_ip_address, var.cortex_sending_region)}:${var.cortex_sending_port}"
+    cidr_blocks = [lookup(local.cortex_ip_address, var.cortex_sending_region)]
     from_port   = var.cortex_sending_port
     protocol    = var.fluentd_input_type
     to_port     = var.cortex_sending_port
