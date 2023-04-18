@@ -255,6 +255,7 @@ resource "aws_security_group" "this" {
     self             = false
   }
   ingress {
+    description = length(var.cortex_sending_ip) > 0 ? "Allow access to Cortex IP only on port ${var.cortex_sending_port}" : "Allow any access on port ${var.cortex_sending_port}"
     cidr_blocks = [length(var.cortex_sending_ip) > 0 ? "${var.cortex_sending_ip}/32" : "0.0.0.0/0"]
     from_port   = var.cortex_sending_port
     protocol    = var.fluentd_input_type
