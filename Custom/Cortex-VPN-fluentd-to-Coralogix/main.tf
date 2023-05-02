@@ -312,7 +312,7 @@ resource "aws_security_group" "this" {
     description = "Allow outbound traffic to anywhere"
     from_port   = 443
     to_port     = 443
-    protocol    = "-1"
+    protocol    = "tcp"
     cidr_blocks = local.cortex_ip_address[var.coralogix_domain]
   }
 }
