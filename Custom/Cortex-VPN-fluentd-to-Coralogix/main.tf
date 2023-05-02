@@ -81,10 +81,10 @@ variable "cortex_sending_port" {
   }
 }
 variable "cortex_sending_region" {
-  type    = string
+  type        = string
   description = "The region the Cortex is located"
   validation {
-    condition = can(regex("^Australia|Canada|France|Germany|India|Italy|Japan|Netherlands-Europe|Singapore|Spain|Switzerland|UnitedKingdom|United-States-Americas|United-States-Government$", var.cortex_sending_region))
+    condition     = can(regex("^Australia|Canada|France|Germany|India|Italy|Japan|Netherlands-Europe|Singapore|Spain|Switzerland|UnitedKingdom|United-States-Americas|United-States-Government$", var.cortex_sending_region))
     error_message = "Cortex region can be 'Australia', 'Canada', 'France', 'Germany', 'India', 'Italy', 'Japan', 'Netherlands-Europe', 'Singapore', 'Spain', 'Switzerland', 'UnitedKingdom', 'United-States-Americas' or 'United-States-Government'."
   }
 }
@@ -122,6 +122,33 @@ locals {
     UnitedKingdom            = "35.246.51.240/28"
     United-States-Americas   = "34.67.106.64/28"
     United-States-Government = "34.67.50.64/28"
+  }
+  coralogix_ip_address = {
+    Europe = [
+      "52.19.211.175/32",
+      "52.214.88.252/32",
+      "99.80.86.101/32"
+    ]
+    Europe2 = [
+      "13.48.202.171/32",
+      "13.48.146.82/32",
+      "13.53.213.185/32"
+    ]
+    India   = [
+      "35.154.21.106/32",
+      "15.207.138.190/32",
+      "15.207.123.81/32"
+    ]
+    US = [
+      "3.132.4.30/32",
+      "18.189.166.99/32",
+      "3.140.173.20/32"
+    ]
+    Singapore = [
+      "54.255.21.187/32",
+      "18.136.40.71/32",
+      "18.139.158.33/32"
+    ]
   }
   fluentd = {
     input = {
@@ -283,10 +310,10 @@ resource "aws_security_group" "this" {
   }
   egress {
     description = "Allow outbound traffic to anywhere"
-    from_port   = 0
-    to_port     = 0
+    from_port   = 443
+    to_port     = 443
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = local.cortex_ip_address[var.coralogix_domain]
   }
 }
 resource "random_string" "this" {
