@@ -18,7 +18,7 @@ variable "RegionList" {}
 variable "multiAccountsARNs" {}
 
 module "CSPM" {
-  source = "github.com/coralogix/snowbit-modules//AWS"
+  source = "github.com/coralogix/snowbit-modules//CSPM/AWS"
 
   PrivateKey        = var.PrivateKey
   Subnet_ID         = var.Subnet_ID
