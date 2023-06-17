@@ -8,7 +8,7 @@ google_workspace_primary_admin_email_address = "" # The full primary admin email
 
 # Instance Security
 gcp_block_project_ssh_keys  = false
-enable_vtpm                 = false
-enable_secure_boot          = false
-enable_integrity_monitoring = false
-kms_key_self_link           = "" # Optionall
+gcp_instance_enable_vtpm                 = false
+gcp_instance_enable_secure_boot          = false
+gcp_instance_enable_integrity_monitoring = false
+gcp_instance_kms_key_self_link           = "" # Optionall

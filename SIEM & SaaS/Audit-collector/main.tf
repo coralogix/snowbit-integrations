@@ -1,90 +1,19 @@
 terraform {
-  required_version = ">= 0.13.1"
-
+  required_version = "~> 1.4"
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = ">= 4"
+      version = "~> 4"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.3.2"
+      version = "~> 3.3.2"
     }
   }
 }
 provider "google" {
   project = var.gcp_project_id
   zone    = var.gcp_zone
-}
-
-#### VARIABLES
-variable "gcp_machine_type" {
-  type    = string
-  default = "e2-highcpu-2"
-}
-variable "gcp_boot_disk_type" {
-  type    = string
-  default = "pd-balanced"
-  validation {
-    condition     = can(regex("^(pd-balanced|pd-standard|pd-ssd|pd-extreme)$", var.gcp_boot_disk_type))
-    error_message = "Invalid dick type."
-  }
-}
-variable "gcp_project_subnetwork_vpc" {
-  type        = string
-  description = "The sub network to provision the instance in"
-}
-variable "gcp_zone" {
-  type        = string
-  description = "GCP Zone"
-}
-variable "gcp_project_id" {
-  type        = string
-  description = "GCP project name"
-}
-variable "gcp_block_project_ssh_keys" {
-  type    = bool
-  default = false
-}
-variable "enable_vtpm" {
-  type = bool
-}
-variable "enable_secure_boot" {
-  type = bool
-}
-variable "enable_integrity_monitoring" {
-  type = bool
-}
-variable "kms_key_self_link" {
-  type = string
-}
-// Google Workspace
-variable "google_workspace_primary_admin_email_address" {
-  type = string
-  validation {
-    condition     = can(regex("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)$", var.google_workspace_primary_admin_email_address))
-    error_message = "Invalid email address."
-  }
-}
-// Coralogix vars
-variable "coralogix_applicationName" {
-  type        = string
-  description = "Application name for Coralogix account (no spaces)"
-}
-variable "coralogix_domain" {
-  type    = string
-  default = "Europe"
-  validation {
-    condition     = can(regex("^(?:India|Singapore|Europe|US|Europe2)$", var.coralogix_domain))
-    error_message = "Invalid Coralogix domain."
-  }
-}
-variable "coralogix_private_key" {
-  type = string
-  validation {
-    condition     = can(regex("^[a-f0-9]{8}\\-(?:[a-f0-9]{4}\\-){3}[a-f0-9]{12}$", var.coralogix_private_key))
-    error_message = "The PrivateKey should be valid UUID string."
-  }
 }
 
 ### DATA
@@ -141,16 +70,16 @@ resource "google_compute_instance" "this" {
       image = "ubuntu-os-cloud/ubuntu-2004-lts"
       type  = var.gcp_boot_disk_type
     }
-    kms_key_self_link = var.kms_key_self_link
+    kms_key_self_link = var.gcp_instance_kms_key_self_link
   }
   service_account {
     email  = google_service_account.this.email
     scopes = ["cloud-platform"]
   }
   shielded_instance_config {
-    enable_vtpm                 = var.enable_vtpm
-    enable_secure_boot          = var.enable_secure_boot
-    enable_integrity_monitoring = var.enable_integrity_monitoring
+    enable_vtpm                 = var.gcp_instance_enable_vtpm
+    enable_secure_boot          = var.gcp_instance_enable_secure_boot
+    enable_integrity_monitoring = var.gcp_instance_enable_integrity_monitoring
   }
   metadata = {
     block-project-ssh-keys = var.gcp_block_project_ssh_keys
