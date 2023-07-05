@@ -30,6 +30,7 @@ variable "request" {
     error_message = "Type key must be either 'http', 'tcp', udp, or 'file'."
   }
 }
+
 variable "security_group_id" {
   type    = string
   default = ""
@@ -178,11 +179,13 @@ resource "aws_security_group" "SecurityGroup" {
   }
   ingress {
     description = var.SSHIpAddress == "0.0.0.0/0" ?  "SSH from the world" : length(var.SSHIpAddress) > 0 ? "SSH from user provided IP - ${var.SSHIpAddress}" : "SSH from the creators public IP - ${data.http.external-ip-address.response_body}/32"
-    cidr_blocks = [length(var.SSHIpAddress) > 0 ? var.SSHIpAddress : "${data.http.external-ip-address.response_body}/32"]
-    from_port        = 22
-    to_port          = 22
-    protocol         = "tcp"
-    self             = false
+    cidr_blocks = [
+      length(var.SSHIpAddress) > 0 ? var.SSHIpAddress : "${data.http.external-ip-address.response_body}/32"
+    ]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    self        = false
   }
   egress {
     description = "Allow outbound traffic to anywhere"

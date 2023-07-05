@@ -54,6 +54,13 @@ EOF
   "detail-type": ["ECR Image Scan"]
 }
 EOF
+    okta = <<EOF
+{
+  "source": [{
+    "prefix": "aws.partner/okta.com"
+  }]
+}
+EOF
   }
   coralogix_endpoint_map = {
     Europe    = "https://aws-events.coralogix.com/aws/event"
