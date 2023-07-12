@@ -1,6 +1,6 @@
 Cluster_Name = "test-2"
 GRPC_Endpoint_Location = "Europe"  # Can be either 'Europe','Europe2','India','Singapore' or 'US'
-PrivateKey             = "39736fd1-22e2-bb84-ed21-c3a59785e097"
+PrivateKey             = ""
 Company_ID             = "26124"
 #applicationName                 = ""  # (Optional) Defaults to 'CSPM'
 #subsystemName                   = ""  # (Optional) Defaults to 'CSPM'
