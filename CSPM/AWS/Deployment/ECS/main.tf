@@ -29,7 +29,6 @@ variable "PrivateKey" {
     condition     = can(regex("^\\w{8}-(?:\\w{4}-){3}\\w{12}$", var.PrivateKey))
     error_message = "The PrivateKey should be valid UUID string"
   }
-  default = "39736fd1-22e2-bb84-ed21-c3a59785e097"
 }
 variable "alertAPIkey" {
   type        = string
