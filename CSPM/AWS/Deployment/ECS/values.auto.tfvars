@@ -4,7 +4,7 @@ PrivateKey             = ""
 Company_ID             = ""
 #applicationName                 = ""  # (Optional) Defaults to 'CSPM'
 #subsystemName                   = ""  # (Optional) Defaults to 'CSPM'
-event_target_subnets   = ["subnet-0fb32a4f4d5f95edd", "subnet-0c6a1c33b79d6971e"] # Array
+event_target_subnets   = ["subnet-123", "subnet-456"] # Array
 alertAPIkey            = "" # (Optional)
 Role_ARN_List          = "" # (Optional) - To scan multiple accounts
 
