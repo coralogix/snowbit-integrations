@@ -64,60 +64,71 @@ variable "event_target_subnets" {
   description = "The subnets associated with the task or service."
   type        = list(string)
 }
+variable "event_target_ecs_target_security_groups" {
+  description = "(Optional) The security groups associated with the task or service. If you do not specify a security group, the default security group for the VPC is used."
+  type        = list(any)
+  default     = null
+}
+variable "event_target_ecs_target_group" {
+  description = "(Optional) Specifies an ECS task group for the task. The maximum length is 255 characters."
+  default     = null
+}
+variable "event_target_ecs_target_platform_version" {
+  description = "(Optional) Specifies the platform version for the task. Specify only the numeric portion of the platform version, such as 1.1.0. For more information about valid platform versions, see AWS Fargate Platform Versions. Default to LATEST."
+  default     = "LATEST"
+}
+
 //Roles
 locals {
   roles = {
     ecs_execution = {
-      role_name   = "Snowbit-CSPM-ECS-Execution"
+      role_name   = "Snowbit-CSPM-ECS-Execution-${random_string.this.id}"
       policy_name = "ecs-task"
       assume_role = <<ARP
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "",
-            "Effect": "Allow",
-            "Principal": {
-                "Service": [
-                    "ecs-tasks.amazonaws.com"
-                ]
-            },
-            "Action": "sts:AssumeRole"
-        }
-    ]
+	"Version": "2012-10-17",
+	"Statement": [{
+		"Sid": "",
+		"Effect": "Allow",
+		"Principal": {
+			"Service": [
+				"ecs-tasks.amazonaws.com"
+			]
+		},
+		"Action": "sts:AssumeRole"
+	}]
 }
 ARP
       policy      = <<POLICY
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": [
-        "${aws_cloudwatch_log_group.this.arn}/*",
-        ${aws_cloudwatch_log_group.this.arn}
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ecr:GetAuthorizationToken",
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:BatchGetImage",
-      ]
-      "Resources": "*"
-    }
-  ]
+	"Version": "2012-10-17",
+	"Statement": [{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": [
+				"${aws_cloudwatch_log_group.this.arn}:*",
+				"${aws_cloudwatch_log_group.this.arn}"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ecr:GetAuthorizationToken",
+				"ecr:BatchCheckLayerAvailability",
+				"ecr:GetDownloadUrlForLayer",
+				"ecr:BatchGetImage"
+			],
+			"Resource": "*"
+		}
+	]
 }
 POLICY
     }
     task_permissions = {
-      role_name = "Snowbit-CSPM-Task-Permissions"
+      role_name = "Snowbit-CSPM-Task-Permissions-${random_string.this.id}"
       policy_name = "task-permissions"
       assume_role = <<ARP
 {
@@ -134,6 +145,44 @@ POLICY
 }
 ARP
       policy = data.http.policy.response_body
+    }
+    scheduled_task = {
+      role_name = "Snowbit-CSPM-schedule-Permissions-${random_string.this.id}"
+      policy_name = "schedule-permissions"
+      assume_role = <<ARP
+{
+	"Version": "2012-10-17",
+	"Statement": [{
+		"Effect": "Allow",
+		"Principal": {
+			"Service": [
+				"events.amazonaws.com"
+			]
+		},
+		"Action": "sts:AssumeRole"
+	}]
+}
+ARP
+      policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ClusterAccessForTasks",
+      "Action": [
+        "ecs:RunTask"
+      ],
+      "Effect": "Allow",
+      "Resource": "*",
+      "Condition": {
+        "ArnEquals": {
+          "ecs:cluster": "${aws_ecs_cluster.this.arn}"
+        }
+      }
+    }
+  ]
+}
+POLICY
     }
   }
 }
@@ -250,7 +299,7 @@ resource "aws_ecs_task_definition" "this" {
 [
   {
     "name": "${var.Cluster_Name}-container",
-    "image": "coralogixrepo/snowbit-Snowbit-CSPM:latest",
+    "image": "coralogixrepo/snowbit-cspm:latest",
     "cpu": 2048,
     "memory": 4096,
     "essential": true,
@@ -274,6 +323,35 @@ resource "aws_ecs_task_definition" "this" {
 DEFINITION
   family                = "${var.Cluster_Name}-${random_string.this.id}"
   tags                  = var.additional_tags
+}
+
+resource "aws_cloudwatch_event_rule" "this" {
+  name = "CSPM-scheduler"
+  schedule_expression = "rate(10 minutes)"
+  event_bus_name = "default"
+  tags = {
+
+  }
+}
+resource "aws_cloudwatch_event_target" "this" {
+  rule = aws_cloudwatch_event_rule.this.name
+  event_bus_name = aws_cloudwatch_event_rule.this.event_bus_name
+  target_id = "CSPM-Schedule-Target"
+  arn  = aws_ecs_cluster.this.arn
+  role_arn = aws_iam_role.this["scheduled_task"].arn
+  ecs_target {
+    group = var.event_target_ecs_target_group
+    launch_type = "FARGATE"
+    platform_version    = var.event_target_ecs_target_platform_version
+    task_count = 1
+    task_definition_arn = aws_ecs_task_definition.this.arn
+
+    network_configuration {
+      subnets = var.event_target_subnets
+      security_groups = var.event_target_ecs_target_security_groups
+      assign_public_ip = true
+    }
+  }
 }
 
 // Misc
