@@ -325,7 +325,7 @@ DEFINITION
   family                = "${var.Cluster_Name}-${random_string.this.id}"
   tags                  = var.additional_tags
 }
-
+// Scheduling
 resource "aws_cloudwatch_event_rule" "this" {
   name = "CSPM-scheduler"
   schedule_expression = "rate(10 minutes)"
