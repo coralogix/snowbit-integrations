@@ -100,6 +100,7 @@ if __name__ == "__main__":
     try:
         iam_client = boto3.client('iam')
         org_client = boto3.client('organizations')
+
         response = None
         next_token = None
 
@@ -142,4 +143,3 @@ if __name__ == "__main__":
 
     with open(log_file, "a") as log_file:
         log_file.write("\n")
-
