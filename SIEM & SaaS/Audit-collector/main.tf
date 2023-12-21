@@ -50,7 +50,6 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 sudo groupadd docker
 sudo usermod -aG docker $USER
 newgrp docker
-
 EOF
       image_pull               = <<EOF
 docker pull coralogixrepo/coralogix-audit-collector
