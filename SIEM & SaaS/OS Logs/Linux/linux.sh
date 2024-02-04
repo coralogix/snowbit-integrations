@@ -111,7 +111,7 @@ os_id=$(cat "$os_release_file" | grep -E "^ID=" | awk -F'=' '{print $2}' | tr -d
 
 if [ "$os_id" = "ubuntu" ]; then
   os_codename=$(lsb_release -sc)
-	curl -fsSL https://toolbelt.treasuredata.com/sh/install-ubuntu-$os_codename-fluent-package5-lts.sh | sh
+  curl -fsSL https://toolbelt.treasuredata.com/sh/install-ubuntu-$os_codename-fluent-package5-lts.sh | sh
 
 elif [ "$os_id" = "rhel" ]; then
   curl -fsSL https://toolbelt.treasuredata.com/sh/install-redhat-fluent-package5-lts.sh | sh
