@@ -13,7 +13,7 @@ The script supports operation-systems based on Ubuntu (Jammy and Focal), Red Hat
 |   `api-key`   | The Coralogix "Send Your Data" API key               |
 
 #### Coralogix Region
-|   Region    | example URL                 |
+| Region name | example URL                 |
 |:-----------:|-----------------------------|
 |   Europe    | my-team.coralogix.com       |
 |  Europe 2   | my-team.eu2.coralogix.com   |
@@ -21,6 +21,7 @@ The script supports operation-systems based on Ubuntu (Jammy and Focal), Red Hat
 |     US2     | my-team.cx498.coralogix.com |
 |    India    | my-team.app.coralogix.in    |
 |  Singapore  | my-team.coralogixsg.com     |
+NOTE: the command requires the region's name for the `cx-region` argument 
 
 ## Usage
 
