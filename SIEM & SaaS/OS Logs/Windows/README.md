@@ -17,7 +17,7 @@ The script supports operation-systems based on Ubuntu (Jammy and Focal), Red Hat
 |:-----------:|-----------------------------|
 |     EU1     | my-team.coralogix.com       |
 |     EU2     | my-team.eu2.coralogix.com   |
-|     US      | my-team.us.coralogix.com    |
+|     US1     | my-team.us.coralogix.com    |
 |     US2     | my-team.cx498.coralogix.com |
 |     AP1     | my-team.app.coralogix.in    |
 |     AP2     | my-team.coralogixsg.com     |

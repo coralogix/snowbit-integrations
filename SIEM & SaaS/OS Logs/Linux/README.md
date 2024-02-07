@@ -15,18 +15,18 @@ The script supports operation-systems based on Ubuntu (Jammy and Focal), Red Hat
 #### Coralogix Region
 | Region name | example URL                 |
 |:-----------:|-----------------------------|
-|   Europe    | my-team.coralogix.com       |
-|   Europe2   | my-team.eu2.coralogix.com   |
-|     US      | my-team.us.coralogix.com    |
+|     EU1     | my-team.coralogix.com       |
+|     EU2     | my-team.eu2.coralogix.com   |
+|     US1     | my-team.us.coralogix.com    |
 |     US2     | my-team.cx498.coralogix.com |
-|    India    | my-team.app.coralogix.in    |
-|  Singapore  | my-team.coralogixsg.com     |
+|     AP1     | my-team.app.coralogix.in    |
+|     AP2     | my-team.coralogixsg.com     |
 
 NOTE: the command requires the region's name for the `cx-region` argument
 
 Example:
 ```bash
-... --cx-region Europe2 ...
+... --cx-region EU2 ...
 ```
 
 ## Usage

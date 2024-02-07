@@ -1,35 +1,46 @@
 #!/bin/bash
-# v.0.0.4
+# v.0.0.5
 
 OPTIONS=$(getopt -o f:l: -l app-name:,sub-name:,cx-region:,api-key: -n "$0" -- "$@")
+
 if [ $? -ne 0 ]; then
     echo "Invalid option"
     exit 1
 fi
-eval set -- "$OPTIONS"
 
 cx_region_endpoint_resolver() {
     case "$1" in
-        "Europe")
+        "EU1")
             echo "coralogix.com"
             ;;
-        "Europe2")
+        "EU2")
             echo "eu2.coralogix.com"
             ;;
-        "India")
+        "AP1")
             echo "coralogix.in"
             ;;
-        "US")
+        "US1")
             echo "coralogix.us"
             ;;
         "US2")
             echo "cx498.coralogix.com"
             ;;
-        "Singapore")
+        "AP2")
             echo "coralogixsg.com"
             ;;
     esac
 }
+
+validate_uuid() {
+    uuid=$1
+    if [[ $uuid =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+eval set -- "$OPTIONS"
 
 app_name=""
 sub_name=""
@@ -38,11 +49,36 @@ api_key=""
 
 while true; do
     case "$1" in
-        --app-name) app_name="$2"; shift 2;;
-        --sub-name) sub_name="$2"; shift 2;;
-        --cx-region) cx_region=$(cx_region_endpoint_resolver "$2"); shift 2;;
-        --api-key) api_key="$2"; shift 2;;
-        *) break;;
+        --app-name)
+            app_name="$2"
+            if ! [[ "$app_name" =~ ^[\w\-\_\@\.]{3,50}$ ]]; then
+                echo "Error: Invalid application name format. should be a string with 3 to 50 characters and can contain '-'"
+                exit 1
+            fi
+            shift 2;;
+        --sub-name)
+            sub_name="$2"
+            if ! [[ "$sub_name" =~ ^[\w\-\_\@\.]{3,50}$ ]]; then
+                echo "Error: Invalid subsystem name format. should be a string with 3 to 50 characters and can contain '-'"
+                exit 1
+            fi
+            shift 2;;
+        --cx-region)
+            cx_region=$(cx_region_endpoint_resolver "$2")
+            if ! [[ "$2" =~ ^(EU|AP|US)[12]$ ]]; then
+                echo "Error: Invalid cx-region format. should follow the regex ^(EU|AP|US)[12]$"
+                exit 1
+            fi
+            shift 2;;
+        --api-key)
+            api_key="$2"
+            if ! validate_uuid "$api_key"; then
+                echo "Error: Invalid API key format. should be a UUID"
+                exit 1
+            fi
+            shift 2;;
+        *)
+            break;;
     esac
 done
 
