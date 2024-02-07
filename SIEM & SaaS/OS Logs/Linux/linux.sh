@@ -1,5 +1,7 @@
 #!/bin/bash
-# v.0.0.5
+# @licence     Apache-2.0
+# @version     0.0.5
+# @since       0.0.1
 
 OPTIONS=$(getopt -o f:l: -l app-name:,sub-name:,cx-region:,api-key: -n "$0" -- "$@")
 
