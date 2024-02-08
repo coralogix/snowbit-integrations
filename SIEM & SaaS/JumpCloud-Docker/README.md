@@ -6,7 +6,6 @@ Integrate JumpCloud logs to Coralogix via Docker
 ```docker build -t <Docker-Image-Name> .``` 
 
 
-
 ### Add the following command to crontab: `crontab -e`
 
 ```
