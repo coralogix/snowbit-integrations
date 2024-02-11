@@ -3,7 +3,7 @@
 # @version     0.0.6
 # @since       0.0.1
 
-OPTIONS=$(getopt -o f:l: -l app-name:,sub-name:,cx-region:,api-key: -n "$0" -- "$@")
+OPTIONS=$(getopt -o f:l: -l app-name:,sub-name:,cx-region:,api-key:,monitor-containers: -n "$0" -- "$@")
 
 if [ $? -ne 0 ]; then
     echo "Invalid option"
