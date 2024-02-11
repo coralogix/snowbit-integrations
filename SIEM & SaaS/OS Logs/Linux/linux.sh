@@ -33,9 +33,9 @@ cx_region_endpoint_resolver() {
     esac
 }
 
-validate_uuid() {
+validate_api_key() {
     uuid=$1
-    if [[ $uuid =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+    if [[ $uuid =~ ^cxt[ph]_\w{30}|[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$ ]]; then
         return 0
     else
         return 1
@@ -48,20 +48,23 @@ app_name=""
 sub_name=""
 cx_region=""
 api_key=""
+monitor_containers="false"
 
 while true; do
     case "$1" in
         --app-name)
+
             app_name="$2"
+
             if ! [[ "$app_name" =~ ^[\w\-\_\@\.]{3,50}$ ]]; then
-                echo "Error: Invalid application name format. should be a string with 3 to 50 characters and can contain '-'"
+                echo "Error: Invalid application name format. should be a string with 3 to 50 characters."
                 exit 1
             fi
             shift 2;;
         --sub-name)
             sub_name="$2"
             if ! [[ "$sub_name" =~ ^[\w\-\_\@\.]{3,50}$ ]]; then
-                echo "Error: Invalid subsystem name format. should be a string with 3 to 50 characters and can contain '-'"
+                echo "Error: Invalid subsystem name format. should be a string with 3 to 50 characters."
                 exit 1
             fi
             shift 2;;
@@ -74,10 +77,13 @@ while true; do
             shift 2;;
         --api-key)
             api_key="$2"
-            if ! validate_uuid "$api_key"; then
-                echo "Error: Invalid API key format. should be a UUID"
+            if ! validate_api_key "$api_key"; then
+                echo "Error: Invalid API key format"
                 exit 1
             fi
+            shift 2;;
+        --monitor-containers)
+            monitor_containers="$2"
             shift 2;;
         *)
             break;;
@@ -85,83 +91,96 @@ while true; do
 done
 
 if [ -z "$app_name" ] || [ -z "$sub_name" ] || [ -z "$cx_region" ] || [ -z "$api_key" ]; then
-    echo "Usage: $0 --app-name <App_Name> --sub-name <Sub_Name> --cx-region <CX_Region> --api-key <API_Key>"
+    echo "Usage: $0 --app-name <App_Name> --sub-name <Sub_Name> --cx-region <CX_Region> --api-key <API_Key> [--monitor-containers <true/false>]"
     exit 1
 fi
 
-fluentd_conf="<system>
-  log_level info
-</system>
+if [[ "$monitor_containers" == "true" ]]; then
+    read -p "DISCLAIMER: To collect container logs, OpeTelemetry needs to run as Root. Continue? (yes/no): " response
+    if [ "$response" = "yes" ]; then
+        docker_input="/var/lib/docker/containers/*/*.log"
 
-<source>
-  @type tail
-  @id tail_var_logs
-  @label @CORALOGIX
-  path /var/log/*.log
-  pos_file /var/log/all.pos
-        path_key path
-  tag all
-  read_from_head true
-  <parse>
-    @type none
-  </parse>
-</source>
+        # Making Fluent-D run as root
+        sed -i "s@User=@#User=@" /usr/lib/systemd/system/otelcol-contrib.service
+        sed -i "s@Group=@#Group=@" /usr/lib/systemd/system/otelcol-contrib.service
+        systemctl daemon-reload
+    fi
 
-<label @CORALOGIX>
-  <filter **>
-  @type record_transformer
-  @log_level warn
-  enable_ruby true
-  auto_typecast true
-  renew_record true
-  <record>
-    applicationName \"$app_name\"
-    subsystemName \"$sub_name\"
-    text \${record.to_json}
-  </record>
-  </filter>
-
-<match **>
-  @type http
-  @id http_to_coralogix
-  endpoint \"https://ingress.$cx_region/logs/v1/singles\"
-  headers {\"authorization\":\"Bearer $api_key\"}
-  retryable_response_codes 503
-  error_response_as_unrecoverable false
-  <buffer>
-    @type memory
-    chunk_limit_size 10MB
-    compress gzip
-    flush_interval 1s
-    retry_max_times 5
-    retry_type periodic
-    retry_wait 2
-  </buffer>
-  <secondary>
-    #If any messages fail to send they will be send to STDOUT for debug.
-    @type stdout
-  </secondary>
-</match>
-</label>"
-
-os_release_file="/etc/os-release"
-os_id=$(cat "$os_release_file" | grep -E "^ID=" | awk -F'=' '{print $2}' | tr -d '"')
-
-if [ "$os_id" = "ubuntu" ]; then
-  os_codename=$(lsb_release -sc)
-	curl -fsSL https://toolbelt.treasuredata.com/sh/install-ubuntu-$os_codename-fluent-package5-lts.sh | sh
-
-elif [ "$os_id" = "rhel" ] || [ "$os_id" = "centos" ]; then
-  curl -fsSL https://toolbelt.treasuredata.com/sh/install-redhat-fluent-package5-lts.sh | sh
-
-elif [ "$os_id" = "amzn" ]; then
-  amzn_version=$(cat "$os_release_file" | grep -E "^VERSION_ID=" | awk -F'=' '{print $2}' | tr -d '"')
-  curl -fsSL https://toolbelt.treasuredata.com/sh/install-amazon"$amzn_version"-fluent-package5-lts.sh | sh
+elif [[ "$monitor_containers" == "false" ]]; then
+    docker_input=""
+else
+    echo "Error: Invalid value for monitor-containers. It should be 'true' or 'false'"
+    exit 1
 fi
 
-touch /var/log/all.pos
-chmod 777 /var/log/all.pos
-chmod 644 /var/log/*.log
-echo "$fluentd_conf" > /etc/fluent/fluentd.conf
-systemctl enable fluentd
-systemctl restart fluentd
+otel_conf="receivers:
+  filelog:
+    include:
+      - /var/log/*.log
+      - $docker_input
+processors:
+  batch: {}
+  resourcedetection/env:
+    detectors: [env, system]
+    system:
+      hostname_sources: ['os']
+      resource_attributes:
+        host.id:
+          enabled: true
+  resourcedetection/cloud:
+    detectors: ['gcp', 'ec2', 'azure']
+    timeout: 2s
+    override: false
+    ec2:
+      resource_attributes:
+        cloud.availability_zone:
+          enabled: true
+        cloud.region:
+          enabled: true
+exporters:
+  coralogix:
+    domain: '$cx_region'
+    private_key: '$api_key'
+    subsystem_name_attributes:
+      - 'host.name'
+    application_name: '$app_name'
+    subsystem_name: '$sub_name'
+    timeout: 30s
+service:
+  pipelines:
+    logs:
+      receivers:
+        - filelog
+      processors:
+        - resourcedetection/env
+        - resourcedetection/cloud
+        - batch
+      exporters:
+        - coralogix"
+
+os_release_file="/etc/os-release"
+machine_type=$(echo $MACHTYPE | awk -F'-' '{print $1}')
+os_id=$(cat "$os_release_file" | grep -E "^ID=" | awk -F'=' '{print $2}' | tr -d '"')
+
+machine_architecture=""
+
+if [ "$machine_type" = "x86_64" ]; then
+  machine_architecture="amd"
+elif [ "$machine_type" = "aarch64" ]; then
+  machine_architecture="arm"
+fi
+
+if [ "$os_id" = "ubuntu" ]; then
+  wget -O otelcol.deb https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.deb
+  dpkg -i otelcol.deb
+elif [ "$os_id" = "amzn" ] || [ "$os_id" = "rhel" ] || [ "$os_id" = centos ]; then
+  wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.rpm
+  rpm -i otelcol.rpm
+fi
+
+if [ "$monitor_containers" = "false" ]; then
+  chmod 644 /var/log/*.log
+fi
+echo "$otel_conf" > /etc/otelcol-contrib/config.yaml
+systemctl enable otelcol-contrib.service
+systemctl restart otelcol-contrib.service

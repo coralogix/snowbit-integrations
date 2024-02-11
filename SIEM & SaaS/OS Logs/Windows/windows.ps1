@@ -16,7 +16,7 @@ param(
     [string]$cx_region,
 
     [Parameter(Mandatory=$true)]
-    [ValidateScript({$_ -match '^cxt[ph]_\w{30}|\w{8}-(?:\w{4}-){3}\w{12}$'})]
+    [ValidateScript({$_ -match '^cxt[ph]_\w{30}|[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'})]
     [string]$api_key
 )
 
