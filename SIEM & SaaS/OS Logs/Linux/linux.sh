@@ -1,6 +1,6 @@
 #!/bin/bash
 # @licence     Apache-2.0
-# @version     0.0.5
+# @version     0.0.6
 # @since       0.0.1
 
 OPTIONS=$(getopt -o f:l: -l app-name:,sub-name:,cx-region:,api-key: -n "$0" -- "$@")
@@ -35,7 +35,7 @@ cx_region_endpoint_resolver() {
 
 validate_api_key() {
     uuid=$1
-    if [[ $uuid =~ ^cxt[ph]_\w{30}|[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$ ]]; then
+    if [[ $uuid =~ ^cxt[ph]_[A-f0-9]{30}$|^[0-9A-f]{8}\-[0-9A-f]{4}\-[0-9A-f]{4}\-[0-9A-f]{4}\-[0-9A-f]{12}$ ]]; then
         return 0
     else
         return 1
@@ -53,17 +53,15 @@ monitor_containers="false"
 while true; do
     case "$1" in
         --app-name)
-
             app_name="$2"
-
-            if ! [[ "$app_name" =~ ^[\w\-\_\@\.]{3,50}$ ]]; then
+            if ! [[ "$app_name" =~ ^[A-z0-9\_\@\.\-]{3,50}$ ]]; then
                 echo "Error: Invalid application name format. should be a string with 3 to 50 characters."
                 exit 1
             fi
             shift 2;;
         --sub-name)
             sub_name="$2"
-            if ! [[ "$sub_name" =~ ^[\w\-\_\@\.]{3,50}$ ]]; then
+            if ! [[ "$sub_name" =~ ^[A-z0-9\_\@\.\-]{3,50}$ ]]; then
                 echo "Error: Invalid subsystem name format. should be a string with 3 to 50 characters."
                 exit 1
             fi
@@ -159,7 +157,7 @@ service:
         - coralogix"
 
 os_release_file="/etc/os-release"
-machine_type=$(echo $MACHTYPE | awk -F'-' '{print $1}')
+machine_type=$(echo "$MACHTYPE" | awk -F'-' '{print $1}')
 os_id=$(cat "$os_release_file" | grep -E "^ID=" | awk -F'=' '{print $2}' | tr -d '"')
 
 machine_architecture=""
@@ -173,7 +171,7 @@ fi
 if [ "$os_id" = "ubuntu" ]; then
   wget -O otelcol.deb https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.deb
   dpkg -i otelcol.deb
-elif [ "$os_id" = "amzn" ] || [ "$os_id" = "rhel" ] || [ "$os_id" = centos ]; then
+elif [ "$os_id" = "amzn" ] || [ "$os_id" = "rhel" ] || [ "$os_id" = "centos" ]; then
   wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.rpm
   rpm -i otelcol.rpm
 fi
