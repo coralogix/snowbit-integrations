@@ -34,8 +34,8 @@ cx_region_endpoint_resolver() {
 }
 
 validate_api_key() {
-    uuid=$1
-    if [[ $uuid =~ ^cxt[ph]_[A-f0-9]{30}$|^[0-9A-f]{8}\-[0-9A-f]{4}\-[0-9A-f]{4}\-[0-9A-f]{4}\-[0-9A-f]{12}$ ]]; then
+    key=$1
+    if [[ $key =~ ^cxt[ph]_[A-z0-9]{30}$|^[0-9A-f]{8}\-[0-9A-f]{4}\-[0-9A-f]{4}\-[0-9A-f]{4}\-[0-9A-f]{12}$ ]]; then
         return 0
     else
         return 1
@@ -96,9 +96,9 @@ fi
 if [[ "$monitor_containers" == "true" ]]; then
     read -p "DISCLAIMER: To collect container logs, OpeTelemetry needs to run as Root. Continue? (yes/no): " response
     if [ "$response" = "yes" ]; then
-        docker_input="/var/lib/docker/containers/*/*.log"
+        docker_input="- /var/lib/docker/containers/*/*.log"
 
-        # Making Fluent-D run as root
+        # Making Otel run as root
         sed -i "s@User=@#User=@" /usr/lib/systemd/system/otelcol-contrib.service
         sed -i "s@Group=@#Group=@" /usr/lib/systemd/system/otelcol-contrib.service
         systemctl daemon-reload
@@ -115,7 +115,7 @@ otel_conf="receivers:
   filelog:
     include:
       - /var/log/*.log
-      - $docker_input
+      $docker_input
 processors:
   batch: {}
   resourcedetection/env:
@@ -171,9 +171,11 @@ fi
 if [ "$os_id" = "ubuntu" ]; then
   wget -O otelcol.deb https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.deb
   dpkg -i otelcol.deb
+  rm otelcol.deb
 elif [ "$os_id" = "amzn" ] || [ "$os_id" = "rhel" ] || [ "$os_id" = "centos" ]; then
-  wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.rpm
+  wget -O otelcol.rpm https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.rpm
   rpm -i otelcol.rpm
+  rm otelcol.rpm
 fi
 
 if [ "$monitor_containers" = "false" ]; then
