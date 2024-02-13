@@ -38,6 +38,9 @@ machine_architecture_resolver() {
       "x86_64")
           echo "amd64"
           ;;
+      "armv7")
+          echo "armv7"
+          ;;
       "armv7l")
           echo "armv7"
           ;;
