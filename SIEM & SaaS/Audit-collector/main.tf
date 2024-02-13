@@ -56,9 +56,21 @@ docker pull coralogixrepo/coralogix-audit-collector
 EOF
       google_workspace_command = <<EOF
 # Google Workspace
-crontab -l | { cat; echo "*/5 * * * * docker run -it -e CORALOGIX_LOG_URL="https://ingress.${local.domain_endpoint_map[var.coralogix_domain]}/api/v1/logs" -e GOOGLE_TARGET_PRINCIPAL="${google_service_account.this.email}" -e CORALOGIX_PRIVATE_KEY="${var.coralogix_private_key}" -e CORALOGIX_APP_NAME="${var.coralogix_applicationName}" -e INTEGRATION_SEARCH_DIFF_IN_MINUTES="5" -e INTEGRATION_NAME="googleworkspace" -e IMPERSONATE_USER_EMAIL="${var.google_workspace_primary_admin_email_address}" -e BASE_URL="$BASE_URL" coralogixrepo/coralogix-audit-collector"; } | crontab -
+crontab -l | { cat; echo "*/5 * * * * docker rm google-workspace ; docker run --name google-workspace -e CORALOGIX_LOG_URL="https://ingress.${local.domain_endpoint_map[var.coralogix_domain]}/api/v1/logs" -e GOOGLE_TARGET_PRINCIPAL="${google_service_account.this.email}" -e CORALOGIX_PRIVATE_KEY="${var.coralogix_private_key}" -e CORALOGIX_APP_NAME="${var.coralogix_applicationName}" -e INTEGRATION_SEARCH_DIFF_IN_MINUTES="5" -e INTEGRATION_NAME="googleworkspace" -e IMPERSONATE_USER_EMAIL="${var.google_workspace_primary_admin_email_address}" -e BASE_URL="$BASE_URL" coralogixrepo/coralogix-audit-collector"; } | crontab -
 EOF
     }
+  }
+  google_apis = {
+    "Admin": "admin.googleapis.com",
+    "Contacts_API": "contacts.googleapis.com",
+    "Google_Workspace_Migrate_API": "migrate.googleapis.com",
+    "Gmail_API": "gmail.googleapis.com",
+    "Google_Calendar_API": "calendar-json.googleapis.com",
+    "Google_Drive_API": "drive.googleapis.com",
+    "Groups_Migration_API": "groupsmigration.googleapis.com",
+    "Groups_Settings_API": "groupssettings.googleapis.com",
+    "Google_Sheets_API": "sheets.googleapis.com",
+    "Tasks_API": "tasks.googleapis.com"
   }
 }
 
@@ -116,8 +128,9 @@ resource "google_project_iam_custom_role" "this" {
   role_id     = "google_workspace_${random_string.id.id}"
   title       = "google-workspace-${random_string.id.id}"
 }
-resource "google_project_service" "admin_sdk" {
-  service = "admin.googleapis.com"
+resource "google_project_service" "workspaces_APIs" {
+  for_each = local.google_apis
+  service = each.value
   project = data.google_project.current.id
 }
 resource "random_string" "id" {
