@@ -77,6 +77,7 @@ if __name__ == "__main__":
                                   "for India. 'ng-api-grpc.coralogixsg.com' for Singapore. "
                                   "'ng-api-grpc.eu2.coralogix.com' for Stockholm", type=str,
                              default="ng-api-grpc.coralogix.us")
+    args_parser.add_argument("--excluded-accounts", required=False, type=str)
 
     args = args_parser.parse_args()
 
@@ -100,6 +101,7 @@ if __name__ == "__main__":
     try:
         iam_client = boto3.client('iam')
         org_client = boto3.client('organizations')
+
         response = None
         next_token = None
 
@@ -113,9 +115,14 @@ if __name__ == "__main__":
 
             if "Accounts" in response and len(response) > 0:
                 accounts = response["Accounts"]
-                current_account_id = boto3.client('sts').get_caller_identity().get('Account')
+
+                comma_separated_excluded_account = str(args.excluded_accounts).split(",") if len(
+                    args.excluded_accounts) > 0 else []
+
+                current_account_id = [boto3.client('sts').get_caller_identity().get('Account')] + comma_separated_excluded_account
+
                 for account in accounts:
-                    if account["Id"] != current_account_id:
+                    if account["Id"] not in current_account_id:
                         roles_arns.append(f'arn:aws:iam::{account["Id"]}:role/{args.role_name}')
             else:
                 logger("ERROR", "'Accounts' object doesn't exists in the Organization object response")
@@ -142,4 +149,3 @@ if __name__ == "__main__":
 
     with open(log_file, "a") as log_file:
         log_file.write("\n")
-
