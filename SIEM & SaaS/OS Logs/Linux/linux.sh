@@ -1,6 +1,6 @@
 #!/bin/bash
 # @licence     Apache-2.0
-# @version     0.1.1
+# @version     0.1.2
 # @since       0.0.1
 
 OPTIONS=$(getopt -o f:l: -l app-name:,sub-name:,cx-region:,api-key:,monitor-containers: -n "$0" -- "$@")
@@ -31,6 +31,26 @@ cx_region_endpoint_resolver() {
             echo "coralogixsg.com"
             ;;
     esac
+}
+
+machine_architecture_resolver() {
+  case "$1" in
+      "x86_64")
+          echo "amd64"
+          ;;
+      "armv7l")
+          echo "armv7"
+          ;;
+      "arm64")
+          echo "arm64"
+          ;;
+      "ppc64le")
+          echo "ppc64le"
+          ;;
+      "s390x")
+          echo "s390x"
+          ;;
+  esac
 }
 
 validate_api_key() {
@@ -157,22 +177,9 @@ service:
         - coralogix"
 
 os_release_file="/etc/os-release"
-machine_type=$(uname -m)
 os_id=$(cat "$os_release_file" | grep -E "^ID=" | awk -F'=' '{print $2}' | tr -d '"')
 
-machine_architecture=""
-
-if [ "$machine_type" = "x86_64" ]; then
-  machine_architecture="amd64"
-elif [ "$machine_type" = arm64 ]; then
-  machine_architecture="arm64"
-elif [[ "$machine_type" =~ ^(armv7l|armv7)$ ]]; then
-  machine_architecture="armv7"
-elif [ "$machine_type" = "ppc64le" ]; then
-  machine_architecture="ppc64le"
-elif [ "$machine_type" = "s390x" ]; then
-  machine_architecture="s390x"
-fi
+machine_architecture=$(machine_architecture_resolver "$(uname -m)")
 
 if [ "$os_id" = "ubuntu" ]; then
   wget -O otelcol.deb https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture".deb
