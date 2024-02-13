@@ -1,6 +1,6 @@
 #!/bin/bash
 # @licence     Apache-2.0
-# @version     0.1.0
+# @version     0.1.1
 # @since       0.0.1
 
 OPTIONS=$(getopt -o f:l: -l app-name:,sub-name:,cx-region:,api-key:,monitor-containers: -n "$0" -- "$@")
@@ -157,23 +157,29 @@ service:
         - coralogix"
 
 os_release_file="/etc/os-release"
-machine_type=$(echo "$MACHTYPE" | awk -F'-' '{print $1}')
+machine_type=$(uname -m)
 os_id=$(cat "$os_release_file" | grep -E "^ID=" | awk -F'=' '{print $2}' | tr -d '"')
 
 machine_architecture=""
 
 if [ "$machine_type" = "x86_64" ]; then
-  machine_architecture="amd"
-elif [ "$machine_type" = "aarch64" ]; then
-  machine_architecture="arm"
+  machine_architecture="amd64"
+elif [ "$machine_type" = arm64 ]; then
+  machine_architecture="arm64"
+elif [[ "$machine_type" =~ ^(armv7l|armv7)$ ]]; then
+  machine_architecture="armv7"
+elif [ "$machine_type" = "ppc64le" ]; then
+  machine_architecture="ppc64le"
+elif [ "$machine_type" = "s390x" ]; then
+  machine_architecture="s390x"
 fi
 
 if [ "$os_id" = "ubuntu" ]; then
-  wget -O otelcol.deb https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.deb
+  wget -O otelcol.deb https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture".deb
   dpkg -i otelcol.deb
   rm otelcol.deb
 elif [ "$os_id" = "amzn" ] || [ "$os_id" = "rhel" ] || [ "$os_id" = "centos" ]; then
-  wget -O otelcol.rpm https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture"64.rpm
+  wget -O otelcol.rpm https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.94.0/otelcol-contrib_0.94.0_linux_"$machine_architecture".rpm
   rpm -i otelcol.rpm
   rm otelcol.rpm
 fi
