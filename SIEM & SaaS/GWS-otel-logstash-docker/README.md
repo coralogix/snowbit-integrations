@@ -16,7 +16,7 @@ docker run --name gws-coralogix -d <Docker-Image-Name>
 
 Note: 
 
-	Update the google email id in filbeat.yml
+	Update the google email address in filbeat.yml
 	
 	Update the url, private key , application name and subsystem name in logstash.conf
       
