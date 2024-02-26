@@ -14,8 +14,8 @@ RUN ARCH=$(uname -m) && \
     wget https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.12.0-linux-$FILEBEAT_ARCH.tar.gz && \
     tar -xf filebeat-8.12.0-linux-$FILEBEAT_ARCH.tar.gz && \
     mv filebeat-8.12.0-linux-$FILEBEAT_ARCH filebeat-8.12.0-linux && \
-    wget https://artifacts.elastic.co/downloads/logstash/logstash-8.0.1-$LOGSTASH_ARCH.deb && \
-    dpkg -i logstash-8.0.1-$LOGSTASH_ARCH.deb
+    wget https://artifacts.elastic.co/downloads/logstash/logstash-8.12.0-$LOGSTASH_ARCH.deb && \
+    dpkg -i logstash-8.12.0-$LOGSTASH_ARCH.deb
 
 RUN mkdir /tmp/gws_creds
 
