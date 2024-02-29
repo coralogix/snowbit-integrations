@@ -16,7 +16,7 @@ docker run --name gws-coralogix -d <Docker-Image-Name>
 
 Note: 
        
-        Remember to substitute the placeholders with your actual API keys, coralogix domain, application name, and subsystem name.
+	Remember to substitute the placeholders with your actual API keys, coralogix domain, application name, and subsystem name.
 
 	Update the auth_token in eventsapibeat.yml
 	
