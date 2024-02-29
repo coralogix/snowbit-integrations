@@ -11,7 +11,7 @@ docker build -t <Docker-Image-Name> .
 ### Run the docker container
 
 ```
-docker run --name gws-coralogix -d <Docker-Image-Name>
+docker run --name onepassword-coralogix -d <Docker-Image-Name>
 ```
 
 Note: 
