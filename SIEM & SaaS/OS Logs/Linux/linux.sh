@@ -47,6 +47,9 @@ machine_architecture_resolver() {
       "arm64")
           echo "arm64"
           ;;
+      "aarch64")
+          echo "arm64"
+          ;;
       "ppc64le")
           echo "ppc64le"
           ;;
