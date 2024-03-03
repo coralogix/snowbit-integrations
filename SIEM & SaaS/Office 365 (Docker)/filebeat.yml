@@ -1,0 +1,9 @@
+filebeat.config:
+  modules:
+    path: /Office365/*.yml
+    reload.enabled: false
+
+fields_under_root: true
+
+output.logstash:
+  hosts: ["localhost:2024"]
