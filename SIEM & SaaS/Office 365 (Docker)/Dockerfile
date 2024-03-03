@@ -13,18 +13,26 @@ RUN curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.
 RUN rm logstash-8.12.2-amd64.deb filebeat-8.12.2-amd64.deb
 
 RUN mkdir "/Office365"
-COPY ./logstash.conf /tmp/logstash.conf
-COPY ./filebeat.yml /tmp/filebeat.yml
-COPY ./o365.yml /Office365/o365.yml
-RUN chmod go-w /tmp/filebeat.yml /Office365/o365.yml /tmp/logstash.conf
+COPY ./logstash.conf /Office365/logstash.conf
+COPY ./filebeat.yml /Office365/filebeat.yml
+RUN chmod go-w /Office365/filebeat.yml  /Office365/logstash.conf
+
+RUN echo 'filebeat.config:' > /Office365/o365.yml && \
+    echo '  modules:' >> /Office365/o365.yml && \
+    echo '    path: /Office365/*.yml' >> /Office365/o365.yml && \
+    echo '    reload.enabled: false' >> /Office365/o365.yml && \
+    echo 'fields_under_root: true' >> /Office365/o365.yml && \
+    echo 'output.logstash:' >> /Office365/o365.yml && \
+    echo '  hosts: ["localhost:2024"]' >> /Office365/o365.yml
+RUN chmod 644 /Office365/o365.yml
 
 RUN echo "#!/bin/bash" > /internal.sh && \
-    echo "/usr/share/filebeat/bin/filebeat -c /tmp/filebeat.yml -e &" >> /internal.sh && \
-    echo "/usr/share/logstash/bin/logstash -f /tmp/logstash.conf &" >> /internal.sh && \
+    echo "/usr/share/filebeat/bin/filebeat -c /Office365/filebeat.yml -e &" >> /internal.sh && \
+    echo "/usr/share/logstash/bin/logstash -f /Office365/logstash.conf &" >> /internal.sh && \
     echo "sleep 5" >> /internal.sh && \
     echo "" >> /internal.sh && \
     echo "while true; do" >> /internal.sh && \
-    echo '    if ! echo "$(ps -eo command)" | grep -E "^/usr/share/filebeat/bin/filebeat -c /tmp/filebeat.yml" > /dev/null; then' >> /internal.sh && \
+    echo '    if ! echo "$(ps -eo command)" | grep -E "^/usr/share/filebeat/bin/filebeat -c /Office365/filebeat.yml" > /dev/null; then' >> /internal.sh && \
     echo "        echo 'Filebeat process is not running. exiting...'" >> /internal.sh && \
     echo "        exit 3" >> /internal.sh && \
     echo "    fi" >> /internal.sh && \
