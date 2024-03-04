@@ -1,0 +1,9 @@
+- module: o365
+  audit:
+    enabled: true
+    var.application_id: "<application_id>"
+    var.tenants:
+    - id: "<tenet_id>"
+      name: "<logical_name>"
+    var.client_secret: "<client_secret>"
+    var.api.poll_interval: 30s
