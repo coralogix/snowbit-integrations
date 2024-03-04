@@ -14,17 +14,17 @@ RUN rm logstash-8.12.2-amd64.deb filebeat-8.12.2-amd64.deb
 
 RUN mkdir "/Office365"
 COPY ./logstash.conf /Office365/logstash.conf
-COPY ./filebeat.yml /Office365/filebeat.yml
-RUN chmod go-w /Office365/filebeat.yml  /Office365/logstash.conf
+COPY ./o365.yml /Office365/o365.yml
+RUN chmod go-w /Office365/o365.yml  /Office365/logstash.conf
 
-RUN echo 'filebeat.config:' > /Office365/o365.yml && \
-    echo '  modules:' >> /Office365/o365.yml && \
-    echo '    path: /Office365/*.yml' >> /Office365/o365.yml && \
-    echo '    reload.enabled: false' >> /Office365/o365.yml && \
-    echo 'fields_under_root: true' >> /Office365/o365.yml && \
-    echo 'output.logstash:' >> /Office365/o365.yml && \
-    echo '  hosts: ["localhost:2024"]' >> /Office365/o365.yml
-RUN chmod 644 /Office365/o365.yml
+RUN echo 'filebeat.config:' > /Office365/filebeat.yml && \
+    echo '  modules:' >> /Office365/filebeat.yml && \
+    echo '    path: /Office365/*.yml' >> /Office365/filebeat.yml && \
+    echo '    reload.enabled: false' >> /Office365/filebeat.yml && \
+    echo 'fields_under_root: true' >> /Office365/filebeat.yml && \
+    echo 'output.logstash:' >> /Office365/filebeat.yml && \
+    echo '  hosts: ["localhost:2024"]' >> /Office365/filebeat.yml
+RUN chmod 644 /Office365/filebeat.yml
 
 RUN echo "#!/bin/bash" > /internal.sh && \
     echo "/usr/share/filebeat/bin/filebeat -c /Office365/filebeat.yml -e &" >> /internal.sh && \
