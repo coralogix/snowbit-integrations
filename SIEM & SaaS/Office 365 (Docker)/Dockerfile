@@ -14,12 +14,12 @@ RUN rm logstash-8.12.2-amd64.deb filebeat-8.12.2-amd64.deb
 
 RUN mkdir "/Office365"
 COPY ./logstash.conf /Office365/logstash.conf
-COPY ./o365.yml /Office365/o365.yml
+COPY ./o365.yml /usr/share/filebeat/module/o365.yml
 RUN chmod go-w /Office365/o365.yml  /Office365/logstash.conf
 
 RUN echo 'filebeat.config:' > /etc/filebeat/filebeat.yml && \
     echo '  modules:' >> /etc/filebeat/filebeat.yml && \
-    echo '    path: /Office365/*.yml' >> /etc/filebeat/filebeat.yml && \
+    echo '    path: /usr/share/filebeat/module/*.yml' >> /etc/filebeat/filebeat.yml && \
     echo '    reload.enabled: false' >> /etc/filebeat/filebeat.yml && \
     echo 'fields_under_root: true' >> /etc/filebeat/filebeat.yml && \
     echo '' >> /etc/filebeat/filebeat.yml && \
