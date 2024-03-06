@@ -57,3 +57,4 @@ RUN echo "#!/bin/bash" > /internal.sh && \
 RUN chmod +x /internal.sh
 
 CMD ["/internal.sh"]
+
