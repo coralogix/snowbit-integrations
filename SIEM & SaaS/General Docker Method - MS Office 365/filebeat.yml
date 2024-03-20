@@ -1,0 +1,31 @@
+ignore_older: 3h
+filebeat.modules:
+- module: o365
+  audit:
+    enabled: true
+    var.application_id: "<application_id>"
+    var.tenants:
+    - id: "<tenet_id>"
+      name: "<logical_name>"
+    var.client_secret: "<client_secret>"
+    var.api.poll_interval: 30s
+
+fields_under_root: true
+
+processors:
+- drop_fields:
+    fields:
+    - event.original
+    ignore_missing: true
+
+logging:
+  level: debug
+  to_files: true
+  files:
+  path: /var/log/filebeat
+  name: filebeat.log
+  keepfiles: 10
+  permissions: 0644
+
+output.logstash:
+  hosts: ["localhost:4024"]

@@ -4,14 +4,14 @@ Integrate 1Password to Coralogix via Docker
 ### Build docker image
 
 ```
-docker build -t <Docker-Image-Name> .
+docker build -t onepass . --no-cache
 ```
 
 
 ### Run the docker container
 
 ```
-docker run --name onepassword-coralogix -d <Docker-Image-Name>
+docker run --name onepassword-coralogix -d onepass
 ```
 
 Note: 
@@ -20,7 +20,7 @@ Note:
 
 	Update the auth_token in eventsapibeat.yml
 	
-	Update the url, private key , application name and subsystem name in logstash.conf
+	Update the url, private key, application name and subsystem name in logstash.conf
       
 
 
