@@ -28,7 +28,7 @@ Note:
 ---
 
 
-# Google Workspace integration to Coralogix via Terraform
+# Google Workspace integration to Coralogix - Terraform
 This integration hold few steps in order to integrate Google Workspace audit logs to Coralogix.
 1. Create a **Service Account** in an existing project (or provide a name for a new project if you wish terraform should create one) in GCP
 2. Create a JSON format **Key** for the **Service Account**
