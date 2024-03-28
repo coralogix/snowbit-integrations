@@ -28,7 +28,3 @@
 #    Region-List = length(var.RegionList) > 0 ? var.RegionList : "No explicit region was given, scanning all"
 #  }
 #}
-
-output "test" {
-  value = length(local.policies)
-}
