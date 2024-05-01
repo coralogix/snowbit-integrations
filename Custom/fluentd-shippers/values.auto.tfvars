@@ -10,7 +10,7 @@ request = {
   }
 }
 coralogix_domain      = "Europe"                      # Can be either - Europe, Europe2, India, Singapore or US
-coralogix_private_key = "39736fd1-22e2-bb84-ed21-c3a59785e097"
+coralogix_private_key = ""
 additional_tags       = {}
 subnet_id             = "subnet-0164d0f7cf5a5a427"
 ssh_key               = "ireland"

@@ -14,5 +14,3 @@ additional_tags            = {      # Optional
 }
 okta_api_key = ""
 okta_domain  = ""
-
-# 39736fd122e2bb84ed21c3a59785e097
