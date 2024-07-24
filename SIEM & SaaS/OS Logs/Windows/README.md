@@ -43,7 +43,7 @@ Invoke-WebRequest -Uri "https://path.to.script/script.ps1" -OutFile "windows.ps1
 ```
 
 ### From a file
-Download the script and save it to the linux server.
+Download the script and save it to the Windows server.
 
 Run the script 
 ```powershell
