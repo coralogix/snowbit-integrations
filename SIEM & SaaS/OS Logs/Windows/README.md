@@ -1,8 +1,8 @@
 # Windows Event Logs
 
 ## Description
-This script is using Fluent-D to automatically ship logs to Coralogix by providing 4 arguments.
-The script supports operation-systems based on Ubuntu (Jammy and Focal), Red Hat or Amazon Linux (version 2 and 2023)
+This script is using OpenTelemetry to automatically ship logs to Coralogix by providing 4 arguments.
+The script supports operation-systems based on Windows. 
 
 #### Arguments
 |  Argument   | Description                                          |
