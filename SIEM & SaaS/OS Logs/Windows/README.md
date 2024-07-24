@@ -2,7 +2,7 @@
 
 ## Description
 This script is using OpenTelemetry to automatically ship logs to Coralogix by providing 4 arguments.
-The script supports operation-systems based on Windows.
+The script supports operation-systems based on Windows. 
 
 #### Arguments
 |  Argument   | Description                                          |
