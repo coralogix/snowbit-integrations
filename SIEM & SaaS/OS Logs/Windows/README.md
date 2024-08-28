@@ -5,12 +5,12 @@ This script is using OpenTelemetry to automatically ship logs to Coralogix by pr
 The script supports operation-systems based on Windows. 
 
 #### Arguments
-|  Argument   | Description                                          | Mandatory |    Default Value    |
-|:-----------:|------------------------------------------------------|:---------:|:-------------------:|
-| `app_name`  | Coralogix Application Name                           |   False   |       Windows       |
-| `sub_name`  | Coralogix Subsystem Name                             |   False   |  The computer name  |
-| `cx_region` | The region where your Coralogix account is set up in |   False   |         EU1         |
-|  `api_key`  | The Coralogix "Send Your Data" API key               |   True    |          -          |
+|  Argument   | Description                                          | Mandatory |   Default Value   |
+|:-----------:|------------------------------------------------------|:---------:|:-----------------:|
+| `app_name`  | Coralogix Application Name                           |   False   |      Windows      |
+| `sub_name`  | Coralogix Subsystem Name                             |   False   | The computer name |
+| `cx_region` | The region where your Coralogix account is set up in |   True    |         -         |
+|  `api_key`  | The Coralogix "Send Your Data" API key               |   True    |         -         |
 
 #### Coralogix Region
 | Region name | example URL                 |
