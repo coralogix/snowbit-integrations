@@ -11,9 +11,9 @@ param(
     [ValidateScript({$_ -match '^[\w\-\\\/\@]{3,50}$'})]
     [string]$sub_name = "${COMPUTERNAME}",
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$true)]
     [ValidateScript({$_ -match '^(?:(?:EU|US|AP)[12])+$'})]
-    [string]$cx_region = "EU1",
+    [string]$cx_region,
 
     [Parameter(Mandatory=$true)]
     [ValidateScript({$_ -match '^cxt[ph]_\w{30}|[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'})]
