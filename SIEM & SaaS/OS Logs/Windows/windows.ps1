@@ -1,19 +1,19 @@
 # @licence     Apache-2.0
-# @version     0.0.1
+# @version     0.0.2
 # @since       0.0.1
 
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [ValidateScript({$_ -match '^[\w\-\\\/\@]{3,50}$'})]
-    [string]$app_name,
+    [string]$app_name = "Windows",
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [ValidateScript({$_ -match '^[\w\-\\\/\@]{3,50}$'})]
-    [string]$sub_name,
+    [string]$sub_name = "${COMPUTERNAME}",
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [ValidateScript({$_ -match '^(?:(?:EU|US|AP)[12])+$'})]
-    [string]$cx_region,
+    [string]$cx_region = "EU1",
 
     [Parameter(Mandatory=$true)]
     [ValidateScript({$_ -match '^cxt[ph]_\w{30}|[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'})]
