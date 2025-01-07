@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-conf
+  namespace: {{ .Values.namespace }}
+data:
+  config.yaml: |
+    receivers:
+      filelog:
+        include:
+          - /tetragon/tetragon.log
+        start_at: beginning
+    exporters:
+      coralogix:
+        domain: '{{ .Values.domain }}'
+        private_key: '{{ .Values.private_key }}'
+        application_name: '{{ .Values.application_name }}'
+        subsystem_name: '{{ .Values.subsystem_name }}'
+        timeout: 30s
+    service:
+      pipelines:
+        logs:
+          receivers:
+            - filelog
+          exporters:
+            - coralogix

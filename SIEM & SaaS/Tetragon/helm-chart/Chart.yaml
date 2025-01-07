@@ -1,0 +1,9 @@
+apiVersion: v2
+name: tetragon-to-cx
+version: 0.1.0
+description: A Helm chart for deploying an OpenTelemetry collector for Tetragon
+type: application
+appVersion: "latest"
+maintainers:
+  - name: Nir Limor
+    email: nir.limor@coralogix.com

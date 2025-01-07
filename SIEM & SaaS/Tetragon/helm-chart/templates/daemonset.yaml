@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: tetragon-to-cx
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: tetragon-to-cx
+  template:
+    metadata:
+      labels:
+        app: tetragon-to-cx
+    spec:
+      containers:
+        - name: tetragon-to-cx
+          image: otel/opentelemetry-collector-contrib:latest
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            runAsGroup: 0
+          volumeMounts:
+            - name: otel-vol
+              mountPath: /etc/otelcol-contrib/config.yaml
+              subPath: config.yaml
+            - name: tetragon-log
+              mountPath: /tetragon
+      volumes:
+        - name: otel-vol
+          configMap:
+            name: otel-conf
+        - name: tetragon-log
+          hostPath:
+            path: /var/run/cilium/tetragon
