@@ -40,7 +40,7 @@ Example:
 Upload to a location of your choosing, or use the raw script directly from GitHub 
 
 ```bash
-curl -sS https://raw.githubusercontent.com/coralogix/snowbit-integrations/feature/os-logs-script/SIEM%20%26%20SaaS/OS%20Logs/Linux/linux.sh | bash -s -- --app-name MyApp --sub-name SubApp --cx-region US --api-key abc123
+curl -sS https://github.com/coralogix/snowbit-integrations/blob/master/SIEM%20%26%20SaaS/OS%20Logs/Linux/linux.sh | bash -s -- --app-name MyApp --sub-name SubApp --cx-region US --api-key abc123
 ```
 
 ### From a file
