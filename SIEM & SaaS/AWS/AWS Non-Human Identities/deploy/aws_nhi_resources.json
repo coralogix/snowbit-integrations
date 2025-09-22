@@ -1,0 +1,854 @@
+{
+  "id": "hK2a2xDwffQznLEs2AtkC",
+  "name": "AWS NHI Resources",
+  "layout": {
+    "sections": [
+      {
+        "id": {
+          "value": "3ff560c8-652a-4b97-8243-bfadb99cd156"
+        },
+        "rows": [
+          {
+            "id": {
+              "value": "9b22b4a6-e51f-4400-9b01-14ff66ff7192"
+            },
+            "appearance": {
+              "height": 16
+            },
+            "widgets": [
+              {
+                "id": {
+                  "value": "269b5c4c-243f-442d-91ac-399839095b48"
+                },
+                "title": "Accounts",
+                "definition": {
+                  "gauge": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI'\n| filter $d.account_id != null\n| countby $d.account_id\n| count"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "min": 0,
+                    "max": 100,
+                    "showInnerArc": false,
+                    "showOuterArc": false,
+                    "unit": "UNIT_CUSTOM",
+                    "thresholds": [
+                      {
+                        "from": 0,
+                        "color": "var(--c-severity-log-debug)"
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "thresholdBy": "THRESHOLD_BY_VALUE",
+                    "customUnit": "AWS Accounts",
+                    "decimal": 2,
+                    "thresholdType": "THRESHOLD_TYPE_RELATIVE",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    },
+                    "legendBy": "LEGEND_BY_GROUPS",
+                    "displaySeriesName": true
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "f69ddb3e-4d3a-4c7e-bbec-a8d92cd13683"
+                },
+                "title": "Regions",
+                "definition": {
+                  "gauge": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI'\n| filter $d.region != null && $d.region != 'global'\n| countby $d.region\n| count"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "min": 0,
+                    "max": 100,
+                    "showInnerArc": false,
+                    "showOuterArc": false,
+                    "unit": "UNIT_CUSTOM",
+                    "thresholds": [
+                      {
+                        "from": 0,
+                        "color": "var(--c-severity-log-debug)"
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "thresholdBy": "THRESHOLD_BY_VALUE",
+                    "customUnit": "Regions",
+                    "decimal": 2,
+                    "thresholdType": "THRESHOLD_TYPE_RELATIVE",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    },
+                    "legendBy": "LEGEND_BY_GROUPS",
+                    "displaySeriesName": true
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "79f4e7e3-402f-4648-82c4-ddc6f3cd5e33"
+                },
+                "title": "IAM Users",
+                "definition": {
+                  "gauge": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'IAM'\n| filter $d.test_name == 'users'\n| filter $d.additional_data.UserId != null\n| countby $d.additional_data.UserId \n| count"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "min": 0,
+                    "max": 100,
+                    "showInnerArc": false,
+                    "showOuterArc": false,
+                    "unit": "UNIT_CUSTOM",
+                    "thresholds": [
+                      {
+                        "from": 0,
+                        "color": "var(--c-severity-log-verbose)"
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "thresholdBy": "THRESHOLD_BY_VALUE",
+                    "customUnit": "IAM Users",
+                    "decimal": 2,
+                    "thresholdType": "THRESHOLD_TYPE_RELATIVE",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    },
+                    "legendBy": "LEGEND_BY_GROUPS",
+                    "displaySeriesName": true
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "508cc2fd-3f7d-4c88-9e2d-6e99b018d630"
+                },
+                "title": "KMS Keys",
+                "definition": {
+                  "gauge": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'KMS'\n| filter additional_data.KeyId != null\n| countby additional_data.KeyId\n| count"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "min": 0,
+                    "max": 100,
+                    "showInnerArc": false,
+                    "showOuterArc": false,
+                    "unit": "UNIT_CUSTOM",
+                    "thresholds": [
+                      {
+                        "from": 0,
+                        "color": "var(--c-severity-log-info)"
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "thresholdBy": "THRESHOLD_BY_VALUE",
+                    "customUnit": "KMS Keys",
+                    "decimal": 2,
+                    "thresholdType": "THRESHOLD_TYPE_RELATIVE",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    },
+                    "legendBy": "LEGEND_BY_GROUPS",
+                    "displaySeriesName": true
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "0c41b834-d2dc-4dd2-938b-2daf1624a53b"
+                },
+                "title": "Secrets",
+                "definition": {
+                  "gauge": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'Secret_Manager'\n| filter $d.additional_data.ARN != null\n| countby $d.additional_data.ARN\n| count"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "min": 0,
+                    "max": 100,
+                    "showInnerArc": false,
+                    "showOuterArc": false,
+                    "unit": "UNIT_CUSTOM",
+                    "thresholds": [
+                      {
+                        "from": 0,
+                        "color": "var(--c-severity-log-error)"
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "thresholdBy": "THRESHOLD_BY_VALUE",
+                    "customUnit": "Secrets",
+                    "decimal": 2,
+                    "thresholdType": "THRESHOLD_TYPE_RELATIVE",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    },
+                    "legendBy": "LEGEND_BY_GROUPS",
+                    "displaySeriesName": true
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "options": {
+          "custom": {
+            "name": "General",
+            "collapsed": false,
+            "color": {
+              "predefined": "SECTION_PREDEFINED_COLOR_UNSPECIFIED"
+            }
+          }
+        }
+      },
+      {
+        "id": {
+          "value": "3e42f5dd-cbe0-4285-81ec-dcd872bdd079"
+        },
+        "rows": [
+          {
+            "id": {
+              "value": "8fd373ec-2d28-4577-a78a-ea207edcea9e"
+            },
+            "appearance": {
+              "height": 38
+            },
+            "widgets": [
+              {
+                "id": {
+                  "value": "30e6fe4c-68b1-420d-b2ea-a6de82b9ed53"
+                },
+                "title": "Users",
+                "definition": {
+                  "dataTable": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'IAM'\n| filter $d.test_name == 'users'\n| filter $d.additional_data.UserName != null\n| groupby $d.additional_data.UserName as UserName, $d.account_id as AccountId ,$d.additional_data.console_access as HasConsoleAccess, $d.additional_data.user_has_access_keys as UserHasAccessKeys, $d.additional_data.user_access_keys_count:num as AccessKeyCount, $d.additional_data.user_age:num as UserAgeInDays"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "resultsPerPage": 100,
+                    "rowStyle": "ROW_STYLE_ONE_LINE",
+                    "columns": [
+                      {
+                        "field": "$d.UserName",
+                        "width": 399
+                      },
+                      {
+                        "field": "$d.AccountId",
+                        "width": 160
+                      },
+                      {
+                        "field": "$d.HasConsoleAccess",
+                        "width": 200
+                      },
+                      {
+                        "field": "$d.UserHasAccessKeys",
+                        "width": 200
+                      },
+                      {
+                        "field": "$d.AccessKeyCount",
+                        "width": 200
+                      },
+                      {
+                        "field": "$d.UserAgeInDays",
+                        "width": 200
+                      }
+                    ],
+                    "orderBy": {
+                      "field": "$d.AccessKeyCount",
+                      "orderDirection": "ORDER_DIRECTION_DESC"
+                    },
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE"
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "2c97eb44-a59c-4b14-b4b8-90ee7268d90c"
+                },
+                "title": "Access keys",
+                "definition": {
+                  "dataTable": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'IAM'\n| filter $d.test_name == 'user_access_key'\n| groupby $d.additional_data.UserName as User, $d.additional_data.AccessKeyId as KeyId, $d.additional_data.key_age as KeyAge, additional_data.key_last_used as DaysSinceUsed, $d.additional_data.key_last_used_date as LastUsedSTime"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "resultsPerPage": 100,
+                    "rowStyle": "ROW_STYLE_ONE_LINE",
+                    "columns": [
+                      {
+                        "field": "$d.User",
+                        "width": 349
+                      },
+                      {
+                        "field": "$d.KeyId",
+                        "width": 206
+                      },
+                      {
+                        "field": "$d.KeyAge",
+                        "width": 113
+                      },
+                      {
+                        "field": "$d.DaysSinceUsed",
+                        "width": 155
+                      },
+                      {
+                        "field": "$d.LastUsedSTime",
+                        "width": 200
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "options": {
+          "custom": {
+            "name": "IAM",
+            "collapsed": false,
+            "color": {
+              "predefined": "SECTION_PREDEFINED_COLOR_GREEN"
+            }
+          }
+        }
+      },
+      {
+        "id": {
+          "value": "38959e75-519c-4315-b57d-3a87474c3b87"
+        },
+        "rows": [
+          {
+            "id": {
+              "value": "5d397b41-58e9-406f-8f76-be7ab6c8a9ac"
+            },
+            "appearance": {
+              "height": 19
+            },
+            "widgets": [
+              {
+                "id": {
+                  "value": "ff5406fd-4bbc-4b13-b462-8178185fb107"
+                },
+                "title": "KMS Top 10 Active Regions",
+                "definition": {
+                  "pieChart": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'KMS'\n| groupby $d.region agg count() as count"
+                        },
+                        "filters": [],
+                        "groupNames": [
+                          "region"
+                        ]
+                      }
+                    },
+                    "maxSlicesPerChart": 10,
+                    "minSlicePercentage": 1,
+                    "stackDefinition": {
+                      "maxSlicesPerStack": 4
+                    },
+                    "labelDefinition": {
+                      "labelSource": "LABEL_SOURCE_INNER",
+                      "isVisible": true,
+                      "showName": true,
+                      "showValue": true,
+                      "showPercentage": true
+                    },
+                    "showLegend": true,
+                    "unit": "UNIT_UNSPECIFIED",
+                    "colorScheme": "classic",
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "customUnit": "",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    }
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "6f941c58-13eb-483e-a5e7-a0f0a2235160"
+                },
+                "title": "Key Management Region Distribution",
+                "definition": {
+                  "pieChart": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'KMS'\n| filter $d.additional_data.KeyManager != null\n| groupby $d.additional_data.KeyManager agg count() as count"
+                        },
+                        "filters": [],
+                        "groupNames": [
+                          "additional_data.KeyManager"
+                        ]
+                      }
+                    },
+                    "maxSlicesPerChart": 8,
+                    "minSlicePercentage": 1,
+                    "stackDefinition": {
+                      "maxSlicesPerStack": 4
+                    },
+                    "labelDefinition": {
+                      "labelSource": "LABEL_SOURCE_INNER",
+                      "isVisible": true,
+                      "showName": true,
+                      "showValue": true,
+                      "showPercentage": true
+                    },
+                    "showLegend": true,
+                    "unit": "UNIT_UNSPECIFIED",
+                    "colorScheme": "classic",
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "customUnit": "",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": {
+              "value": "dd29d08d-5388-43e0-b686-1a240e9a7d96"
+            },
+            "appearance": {
+              "height": 19
+            },
+            "widgets": [
+              {
+                "id": {
+                  "value": "d0724228-f39d-4254-98e0-0c59520a1db1"
+                },
+                "title": "Customer Managed Keys",
+                "definition": {
+                  "dataTable": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'KMS'\n| filter additional_data.KeyId != null\n| filter $d.additional_data.KeyManager == 'CUSTOMER'\n| groupby $d.additional_data.KeyId as KeyId, $d.account_id as AccountId, $d.region as Region,$d.additional_data.KeyUsage as Usage, $d.additional_data.KeyState as Status\n"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "resultsPerPage": 100,
+                    "rowStyle": "ROW_STYLE_ONE_LINE",
+                    "columns": [
+                      {
+                        "field": "$d.KeyId",
+                        "width": 309
+                      },
+                      {
+                        "field": "$d.AccountId",
+                        "width": 200
+                      },
+                      {
+                        "field": "$d.Region"
+                      },
+                      {
+                        "field": "$d.Usage"
+                      },
+                      {
+                        "field": "$d.Status"
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE"
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "e4c38ff1-8766-4b14-a69c-5ac85d53b38f"
+                },
+                "title": "AWS Managed Keys",
+                "definition": {
+                  "dataTable": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'KMS'\n| filter additional_data.KeyId != null\n| filter $d.additional_data.KeyManager == 'AWS'\n| groupby $d.additional_data.KeyId as KeyId, $d.account_id as AccountId, $d.region as Region,$d.additional_data.KeyUsage as Usage, $d.additional_data.KeyState as Status\n"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "resultsPerPage": 100,
+                    "rowStyle": "ROW_STYLE_ONE_LINE",
+                    "columns": [
+                      {
+                        "field": "$d.KeyId",
+                        "width": 309
+                      },
+                      {
+                        "field": "$d.AccountId",
+                        "width": 200
+                      },
+                      {
+                        "field": "$d.Region"
+                      },
+                      {
+                        "field": "$d.Usage"
+                      },
+                      {
+                        "field": "$d.Status"
+                      }
+                    ],
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "options": {
+          "custom": {
+            "name": "KMS Keys",
+            "collapsed": false,
+            "color": {
+              "predefined": "SECTION_PREDEFINED_COLOR_CYAN"
+            }
+          }
+        }
+      },
+      {
+        "id": {
+          "value": "fca3de07-a724-4b25-9fe3-40a5f6546a93"
+        },
+        "rows": [
+          {
+            "id": {
+              "value": "c45f5e97-25fe-47bf-8b6d-b034ee2ec67d"
+            },
+            "appearance": {
+              "height": 31
+            },
+            "widgets": [
+              {
+                "id": {
+                  "value": "b4e6bd3a-4a1f-4130-b339-bf1c42b4a77c"
+                },
+                "title": "All Secrets",
+                "definition": {
+                  "dataTable": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'Secret_Manager' \n| groupby $d.additional_data.Name as Name, $d.account_id as AccountId, $d.region as Region, $d.additional_data.secret_age as SecretAge, $d.additional_data.last_retrieval:string as LastRetrieval"
+                        },
+                        "filters": []
+                      }
+                    },
+                    "resultsPerPage": 100,
+                    "rowStyle": "ROW_STYLE_ONE_LINE",
+                    "columns": [
+                      {
+                        "field": "$d.Name",
+                        "width": 612
+                      },
+                      {
+                        "field": "$d.AccountId",
+                        "width": 135
+                      },
+                      {
+                        "field": "$d.Region",
+                        "width": 107
+                      },
+                      {
+                        "field": "$d.SecretAge",
+                        "width": 126
+                      },
+                      {
+                        "field": "$d.LastRetrieval",
+                        "width": 200
+                      }
+                    ],
+                    "orderBy": {
+                      "field": "$d.LastRetrieval",
+                      "orderDirection": "ORDER_DIRECTION_DESC"
+                    },
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE"
+                  }
+                }
+              },
+              {
+                "id": {
+                  "value": "641a18ac-46cc-4250-ad53-fa0a1bea2a34"
+                },
+                "title": "Secrets Region Distribution",
+                "definition": {
+                  "pieChart": {
+                    "query": {
+                      "dataprime": {
+                        "dataprimeQuery": {
+                          "text": "source logs \n| filter $l.applicationname == 'AWS_NHI' && $l.subsystemname == 'Secret_Manager' \n| groupby $d.region agg count() as count"
+                        },
+                        "filters": [],
+                        "groupNames": [
+                          "region"
+                        ]
+                      }
+                    },
+                    "maxSlicesPerChart": 8,
+                    "minSlicePercentage": 1,
+                    "stackDefinition": {
+                      "maxSlicesPerStack": 4
+                    },
+                    "labelDefinition": {
+                      "labelSource": "LABEL_SOURCE_INNER",
+                      "isVisible": true,
+                      "showName": true,
+                      "showValue": true,
+                      "showPercentage": true
+                    },
+                    "showLegend": true,
+                    "unit": "UNIT_UNSPECIFIED",
+                    "colorScheme": "classic",
+                    "dataModeType": "DATA_MODE_TYPE_ARCHIVE",
+                    "customUnit": "",
+                    "legend": {
+                      "isVisible": true,
+                      "columns": [],
+                      "groupByQuery": false,
+                      "placement": "LEGEND_PLACEMENT_AUTO"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "options": {
+          "custom": {
+            "name": "Secrets",
+            "collapsed": false,
+            "color": {
+              "predefined": "SECTION_PREDEFINED_COLOR_PINK"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "variables": [],
+  "filters": [
+    {
+      "source": {
+        "logs": {
+          "operator": {
+            "equals": {
+              "selection": {
+                "list": {
+                  "values": []
+                }
+              }
+            }
+          },
+          "observationField": {
+            "keypath": [
+              "account_id"
+            ],
+            "scope": "DATASET_SCOPE_USER_DATA"
+          }
+        }
+      },
+      "enabled": true,
+      "collapsed": false
+    },
+    {
+      "source": {
+        "logs": {
+          "operator": {
+            "equals": {
+              "selection": {
+                "list": {
+                  "values": []
+                }
+              }
+            }
+          },
+          "observationField": {
+            "keypath": [
+              "region"
+            ],
+            "scope": "DATASET_SCOPE_USER_DATA"
+          }
+        }
+      },
+      "enabled": true,
+      "collapsed": false
+    },
+    {
+      "source": {
+        "logs": {
+          "operator": {
+            "equals": {
+              "selection": {
+                "list": {
+                  "values": []
+                }
+              }
+            }
+          },
+          "observationField": {
+            "keypath": [
+              "service"
+            ],
+            "scope": "DATASET_SCOPE_USER_DATA"
+          }
+        }
+      },
+      "enabled": true,
+      "collapsed": false
+    },
+    {
+      "source": {
+        "logs": {
+          "operator": {
+            "equals": {
+              "selection": {
+                "all": {}
+              }
+            }
+          },
+          "observationField": {
+            "keypath": [
+              "additional_data",
+              "UserName"
+            ],
+            "scope": "DATASET_SCOPE_USER_DATA"
+          }
+        }
+      },
+      "enabled": true,
+      "collapsed": false
+    },
+    {
+      "source": {
+        "logs": {
+          "operator": {
+            "equals": {
+              "selection": {
+                "list": {
+                  "values": []
+                }
+              }
+            }
+          },
+          "observationField": {
+            "keypath": [
+              "additional_data",
+              "KeyId"
+            ],
+            "scope": "DATASET_SCOPE_USER_DATA"
+          }
+        }
+      },
+      "enabled": true,
+      "collapsed": false
+    },
+    {
+      "source": {
+        "logs": {
+          "operator": {
+            "equals": {
+              "selection": {
+                "list": {
+                  "values": []
+                }
+              }
+            }
+          },
+          "observationField": {
+            "keypath": [
+              "additional_data",
+              "Name"
+            ],
+            "scope": "DATASET_SCOPE_USER_DATA"
+          }
+        }
+      },
+      "enabled": true,
+      "collapsed": false
+    },
+    {
+      "source": {
+        "logs": {
+          "operator": {
+            "equals": {
+              "selection": {
+                "list": {
+                  "values": []
+                }
+              }
+            }
+          },
+          "observationField": {
+            "keypath": [
+              "additional_data",
+              "console_access"
+            ],
+            "scope": "DATASET_SCOPE_USER_DATA"
+          }
+        }
+      },
+      "enabled": true,
+      "collapsed": false
+    }
+  ],
+  "relativeTimeFrame": "86400s",
+  "annotations": [],
+  "off": {}
+}
