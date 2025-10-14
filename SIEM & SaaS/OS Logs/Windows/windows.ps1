@@ -12,7 +12,7 @@ param(
     [string]$sub_name = "${COMPUTERNAME}",
 
     [Parameter(Mandatory=$true)]
-    [ValidateScript({$_ -match '^(?:(?:EU|US|AP)[123])+$'})]
+    [ValidateScript({$_ -match '^(AP[123]|EU[12]|US[12])$'})]
     [string]$cx_region,
 
     [Parameter(Mandatory=$true)]
