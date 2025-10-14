@@ -12,7 +12,7 @@ param(
     [string]$sub_name = "${COMPUTERNAME}",
 
     [Parameter(Mandatory=$true)]
-    [ValidateScript({$_ -match '^(?:(?:EU|US|AP)[12])+$'})]
+    [ValidateScript({$_ -match '^(?:(?:EU|US|AP)[123])+$'})]
     [string]$cx_region,
 
     [Parameter(Mandatory=$true)]
@@ -33,6 +33,7 @@ $region_mapping = @{
     'US2' = 'cx498.coralogix.com'
     'AP1' = 'coralogix.in'
     'AP2' = 'coralogixsg.com'
+    'AP3' = 'ap3.coralogix.com'
 }
 
 if ($region_mapping.ContainsKey($cx_region)) {
