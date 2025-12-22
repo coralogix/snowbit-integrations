@@ -13,22 +13,25 @@ fi
 cx_region_endpoint_resolver() {
     case "$1" in
         "EU1")
-            echo "coralogix.com"
+            echo "eu1.coralogix.com"
             ;;
         "EU2")
             echo "eu2.coralogix.com"
             ;;
         "AP1")
-            echo "coralogix.in"
+            echo "ap1.coralogix.com"
             ;;
         "US1")
-            echo "coralogix.us"
+            echo "us1.coralogix.com"
             ;;
         "US2")
-            echo "cx498.coralogix.com"
+            echo "us2.coralogix.com"
             ;;
         "AP2")
-            echo "coralogixsg.com"
+            echo "ap2.coralogix.com"
+            ;;
+        "AP3")
+            echo "ap3.coralogix.com"
             ;;
     esac
 }

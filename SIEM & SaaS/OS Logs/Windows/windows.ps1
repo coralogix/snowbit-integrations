@@ -27,12 +27,13 @@ if (-not $app_name -or -not $sub_name -or -not $cx_region -or -not $api_key) {
 }
 
 $region_mapping = @{
-    'EU1' = 'coralogix.com'
+    'EU1' = 'eu1.coralogix.com'
     'EU2' = 'eu2.coralogix.com'
-    'US1' = 'coralogix.us'
-    'US2' = 'cx498.coralogix.com'
-    'AP1' = 'coralogix.in'
-    'AP2' = 'coralogixsg.com'
+    'US1' = 'us1.coralogix.com'
+    'US2' = 'us2.coralogix.com'
+    'AP1' = 'ap1.coralogix.com'
+    'AP2' = 'ap2.coralogix.com'
+    'AP3' = 'ap3.coralogix.com'
 }
 
 if ($region_mapping.ContainsKey($cx_region)) {
