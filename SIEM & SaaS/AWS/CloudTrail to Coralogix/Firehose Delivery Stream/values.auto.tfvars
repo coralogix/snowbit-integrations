@@ -1,5 +1,5 @@
 privateKey           = ""
-coralogix_region     = ""                       # Can be either Europe, Europe2, India, Singapore or US
+coralogix_region     = ""                       # Can be either EU1, EU2, AP1, AP2, AP3, US1, US2
 application_name     = ""
 subsystemName        = ""
 firehose_stream      = ""                       # Logical name for the stream
