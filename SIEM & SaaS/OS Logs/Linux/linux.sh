@@ -80,22 +80,22 @@ while true; do
     case "$1" in
         --app-name)
             app_name="$2"
-            if ! [[ "$app_name" =~ ^[A-z0-9\_\@\.\-]{3,50}$ ]]; then
+            if ! [[ "$app_name" =~ ^[A-Za-z0-9\_\@\.\-]{3,50}$ ]]; then
                 echo "Error: Invalid application name format. should be a string with 3 to 50 characters."
                 exit 1
             fi
             shift 2;;
         --sub-name)
             sub_name="$2"
-            if ! [[ "$sub_name" =~ ^[A-z0-9\_\@\.\-]{3,50}$ ]]; then
+            if ! [[ "$sub_name" =~ ^[A-Za-z0-9\_\@\.\-]{3,50}$ ]]; then
                 echo "Error: Invalid subsystem name format. should be a string with 3 to 50 characters."
                 exit 1
             fi
             shift 2;;
         --cx-region)
             cx_region=$(cx_region_endpoint_resolver "$2")
-            if ! [[ "$2" =~ ^(EU|AP|US)[12]$ ]]; then
-                echo "Error: Invalid cx-region format. should follow the regex ^(EU|AP|US)[12]$"
+            if ! [[ "$2" =~ ^(EU|AP|US)[1-3]{1}$ ]]; then
+                echo "Error: Invalid cx-region format. should follow the regex ^(EU|AP|US)[1-3]{1}$"
                 exit 1
             fi
             shift 2;;

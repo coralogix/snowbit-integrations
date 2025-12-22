@@ -7,16 +7,18 @@ variable "privateKey" {
   }
 }
 variable "coralogix_region" {
-  description = "Enter the Coralogix account region [in lower-case letters]: \n- us\n- singapore\n- ireland\n- india\n- stockholm"
+  description = "Enter the Coralogix account region [in lower-case letters]: \n- eu1\n- eu2\n- ap1\n- ap2\n- ap3\n- us1\n- us2"
 }
 variable "cx_region_map" {
   type    = map(string)
   default = {
-    Europe    = "https://firehose-ingress.coralogix.com/firehose"
-    Europe2   = "https://firehose-ingress.eu2.coralogix.com/firehose"
-    India     = "https://firehose-ingress.coralogix.in/firehose"
-    Singapore = "https://firehose-ingress.coralogixsg.com/firehose"
-    US        = "https://firehose-ingress.coralogix.us/firehose"
+    eu1 = "https://ingress.eu1.coralogix.com/aws/firehose"
+    eu2 = "https://ingress.eu2.coralogix.com/aws/firehose"
+    ap1 = "https://ingress.ap1.coralogix.com/aws/firehose"
+    ap2 = "https://ingress.ap2.coralogix.com/aws/firehose"
+    ap3 = "https://ingress.ap3.coralogix.com/aws/firehose"
+    us1 = "https://ingress.us1.coralogix.com/aws/firehose"
+    us2 = "https://ingress.us2.coralogix.com/aws/firehose"
   }
 }
 variable "output_format" {
