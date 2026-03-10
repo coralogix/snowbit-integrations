@@ -1,0 +1,1 @@
+# Coralogix Parser Builder - no dependencies (stdlib only)
