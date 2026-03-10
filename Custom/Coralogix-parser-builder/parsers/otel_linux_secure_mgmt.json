@@ -1,0 +1,219 @@
+{
+  "name": "OTEL Linux secure & cron (auth.log, cron)",
+  "description": "EXTRACT only - keeps original log intact, adds new JSON keys: body, source, timestamp, hostname, tag, pid, message, user, src_ip, action, eventtype, dest, cron_cmd, host, dvc, process, app",
+  "enabled": true,
+  "ruleMatchers": [],
+  "ruleSubgroups": [
+    {
+      "order": 1,
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Extract body from OTEL JSON",
+          "enabled": true,
+          "order": 1,
+          "sourceField": "text",
+          "parameters": {
+            "extractParameters": {
+              "rule": "\"body\"\\s*:\\s*\"(?P<body>[^\"]*)\""
+            }
+          }
+        },
+        {
+          "name": "Extract source (log.file.name)",
+          "enabled": true,
+          "order": 2,
+          "sourceField": "text",
+          "parameters": {
+            "extractParameters": {
+              "rule": "\"log\\.file\\.name\"\\s*:\\s*\"(?P<source>[^\"]*)\""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Extract syslog from text",
+          "enabled": true,
+          "order": 1,
+          "sourceField": "text",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<timestamp>[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2})\\s+(?P<hostname>\\S+)\\s+(?P<tag>\\S+?)(\\[(?P<pid>\\d+)\\])?:\\s*(?P<message>.*)$"
+            }
+          }
+        },
+        {
+          "name": "Extract syslog from body",
+          "enabled": true,
+          "order": 2,
+          "sourceField": "text.body",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<timestamp>[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2})\\s+(?P<hostname>\\S+)\\s+(?P<tag>\\S+?)(\\[(?P<pid>\\d+)\\])?:\\s*(?P<message>.*)$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Extract user from session",
+          "enabled": true,
+          "order": 1,
+          "sourceField": "text.message",
+          "parameters": {
+            "extractParameters": {
+              "rule": "session (?:opened|closed) for user (?P<user>\\S+)(?:\\(uid=\\d+\\))?|Accepted (?:password|publickey) for (?P<user>\\S+) from"
+            }
+          }
+        },
+        {
+          "name": "Extract src_ip",
+          "enabled": true,
+          "order": 2,
+          "sourceField": "text.message",
+          "parameters": {
+            "extractParameters": {
+              "rule": "(?:from|Received disconnect from)\\s+(?P<src_ip>\\d+\\.\\d+\\.\\d+\\.\\d+)"
+            }
+          }
+        },
+        {
+          "name": "Extract action",
+          "enabled": true,
+          "order": 3,
+          "sourceField": "text.message",
+          "parameters": {
+            "extractParameters": {
+              "rule": "(?P<action>opened|closed|disconnected|Accepted|Failed)"
+            }
+          }
+        },
+        {
+          "name": "Extract eventtype",
+          "enabled": true,
+          "order": 4,
+          "sourceField": "text.message",
+          "parameters": {
+            "extractParameters": {
+              "rule": "(?P<eventtype>pam_unix|sshd|runuser|sudo|su|login|polkit)(?:\\([^)]+\\))?:"
+            }
+          }
+        },
+        {
+          "name": "Extract dest from disconnect",
+          "enabled": true,
+          "order": 5,
+          "sourceField": "text.message",
+          "parameters": {
+            "extractParameters": {
+              "rule": "disconnect from (?P<dest>\\d+\\.\\d+\\.\\d+\\.\\d+)"
+            }
+          }
+        },
+        {
+          "name": "Extract cron user",
+          "enabled": true,
+          "order": 6,
+          "sourceField": "text.message",
+          "parameters": {
+            "extractParameters": {
+              "rule": "\\((?P<user>\\w+)\\)\\s+CMD"
+            }
+          }
+        },
+        {
+          "name": "Extract cron_cmd",
+          "enabled": true,
+          "order": 7,
+          "sourceField": "text.message",
+          "parameters": {
+            "extractParameters": {
+              "rule": "CMD\\s+\\((?P<cron_cmd>[^)]+)\\)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Extract host from hostname",
+          "enabled": true,
+          "order": 1,
+          "sourceField": "text.hostname",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<host>.+)$"
+            }
+          }
+        },
+        {
+          "name": "Extract dvc from hostname",
+          "enabled": true,
+          "order": 2,
+          "sourceField": "text.hostname",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<dvc>.+)$"
+            }
+          }
+        },
+        {
+          "name": "Extract process from tag",
+          "enabled": true,
+          "order": 3,
+          "sourceField": "text.tag",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<process>.+)$"
+            }
+          }
+        },
+        {
+          "name": "Extract app from tag",
+          "enabled": true,
+          "order": 4,
+          "sourceField": "text.tag",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<app>.+)$"
+            }
+          }
+        },
+        {
+          "name": "Extract src from src_ip",
+          "enabled": true,
+          "order": 5,
+          "sourceField": "text.src_ip",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<src>.+)$"
+            }
+          }
+        },
+        {
+          "name": "Extract user_name from user",
+          "enabled": true,
+          "order": 6,
+          "sourceField": "text.user",
+          "parameters": {
+            "extractParameters": {
+              "rule": "^(?P<user_name>.+)$"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

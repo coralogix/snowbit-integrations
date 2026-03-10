@@ -1,0 +1,5 @@
+# Copy to terraform.tfvars and fill in your values
+# Or use: export TF_VAR_coralogix_api_key="your-key"
+
+coralogix_api_key  = "your-api-key"
+coralogix_endpoint = "cx498.coralogix.com"

@@ -1,0 +1,45 @@
+---
+description: Parser builder - use code directly, never ask user to run Python CLI
+alwaysApply: true
+---
+
+# Coralogix Parser Builder - Chat-First Workflow
+
+**Important**: Team members interact via Cursor chat only. Do NOT ask them to run `python cli.py` or any terminal commands. You execute the logic yourself.
+
+## When user asks to create a parser for a log sample
+
+1. **Use the parser module directly** – Add the project root to path, then:
+   ```python
+   from parser import generate_parser, analyze_log_format, identify_log_source, load_log_sources
+   result = generate_parser(log_sample=user_sample)
+   rule_group = result["rule_group"]
+   ```
+2. **Show the generated parser** – Display the JSON or key fields.
+3. **Save to file if requested** – Write to `parsers/<name>.json`.
+4. **Deploy if API key provided** – Use `deploy_mgmt_api.deploy_from_dict(rule_group, api_key, endpoint)`.
+
+## When user asks to identify a log format
+
+Use `identify_log_source(sample, load_log_sources())` and report matches with confidence.
+
+## When user asks to add a new log source
+
+Use `add_log_source(source_id, name, description, sample_log)` from parser.py. Do not suggest CLI.
+
+## Initial greeting (when details missing)
+
+If the user hasn't shared enough context, ask:
+
+---
+
+Hi! To help with parsing, please share:
+
+1. **Log source name** (optional)
+2. **Sample logs** (required)
+3. **API key + endpoint** (only if you want me to deploy to Coralogix)
+
+---
+
+- Skip the prompt if they've already provided details.
+- Always use the parser module programmatically; never suggest running Python commands.

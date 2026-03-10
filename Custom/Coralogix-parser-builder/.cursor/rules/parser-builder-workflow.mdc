@@ -1,0 +1,17 @@
+---
+description: How to execute parser logic when user requests parser creation
+alwaysApply: true
+---
+
+# Parser Builder - Execution
+
+When creating, identifying, or deploying parsers from chat:
+
+1. **Working directory**: Run Python from `coralogix-parser-builder/` (project root) so imports work.
+2. **Execute, don't instruct**: Run the logic yourself via terminal. Show the output. Do not say "run this command" to the user.
+3. **Functions to use**:
+   - `generate_parser(log_sample=...)` → returns `{rule_group, source, steps}`
+   - `identify_log_source(sample, load_log_sources())` → returns matches
+   - `add_log_source(id, name, description, sample_log)` → adds to log_sources.json
+   - `deploy_from_dict(rule_group, api_key, endpoint)` from deploy_mgmt_api
+4. **Example flow**: User pastes log → you run `python3 -c "from parser import generate_parser; ..."` (or similar) → you show the generated parser JSON and optionally save/deploy.

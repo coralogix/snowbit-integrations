@@ -1,0 +1,441 @@
+{
+  "log_sources": [
+    {
+      "id": "nginx_access",
+      "name": "NGINX Access Log",
+      "description": "Standard NGINX combined/access log format",
+      "patterns": [
+        "^\\d+\\.\\d+\\.\\d+\\.\\d+ - - \\[.*\\] \".*\" \\d+ \\d+ \".*\" \".*\"",
+        "^\\S+ - \\S+ \\[.*\\] \".*\" \\d{3} \\d+ \".*\" \".*\"",
+        "\\[\\d{2}/[A-Za-z]{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}"
+      ],
+      "documentation": [
+        {
+          "title": "NGINX Log Format Documentation",
+          "url": "https://nginx.org/en/docs/http/ngx_http_log_module.html",
+          "type": "official"
+        },
+        {
+          "title": "Ingress-Nginx Log Format (Kubernetes)",
+          "url": "https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/log-format/",
+          "type": "official"
+        },
+        {
+          "title": "Coralogix Parsing Rules",
+          "url": "https://coralogix.com/docs/user-guides/data-transformation/parsing/log-parsing-rules",
+          "type": "coralogix"
+        }
+      ],
+      "sample_log": "192.168.1.1 - - [05/Mar/2025:10:15:32 +0000] \"GET /api/users HTTP/1.1\" 200 1234 \"-\" \"Mozilla/5.0\"",
+      "parser_type": "nginx_access"
+    },
+    {
+      "id": "nginx_error",
+      "name": "NGINX Error Log",
+      "description": "NGINX error log format",
+      "patterns": [
+        "\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2} \\[.*\\] .*",
+        "\\[error\\] .*",
+        "\\[crit\\] .*",
+        "\\[alert\\] .*"
+      ],
+      "documentation": [
+        {
+          "title": "NGINX Error Log",
+          "url": "https://nginx.org/en/docs/ngx_core_module.html#error_log",
+          "type": "official"
+        }
+      ],
+      "sample_log": "2025/03/05 10:15:32 [error] 12345#0: *67890 connect() failed",
+      "parser_type": "nginx_error"
+    },
+    {
+      "id": "apache_combined",
+      "name": "Apache Combined Log",
+      "description": "Apache HTTP Server combined log format",
+      "patterns": [
+        "\\d+\\.\\d+\\.\\d+\\.\\d+ - \\S+ \\[.*\\] \".*\" \\d{3} \\d+ \".*\" \".*\"",
+        "\"GET |\"POST |\"PUT |\"DELETE |\"HEAD "
+      ],
+      "documentation": [
+        {
+          "title": "Apache Log Files",
+          "url": "https://httpd.apache.org/docs/2.4/logs.html",
+          "type": "official"
+        },
+        {
+          "title": "Apache mod_log_config",
+          "url": "https://httpd.apache.org/docs/2.4/mod/mod_log_config.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "192.168.1.1 - frank [05/Mar/2025:10:15:32 -0700] \"GET /apache_pb.gif HTTP/1.0\" 200 2326 \"http://example.com/\" \"Mozilla/5.0\"",
+      "parser_type": "apache_combined"
+    },
+    {
+      "id": "heroku_router",
+      "name": "Heroku Router Log (L/H)",
+      "description": "Heroku HTTP router and dyno logs",
+      "patterns": [
+        "sock=.* at=.* code=.* desc=.* method=.* path=.* host=.*",
+        "dyno=.* connect=.* service=.* status=.*",
+        "at=warning|at=info|at=error"
+      ],
+      "documentation": [
+        {
+          "title": "Heroku Log Format",
+          "url": "https://devcenter.heroku.com/articles/logging",
+          "type": "official"
+        },
+        {
+          "title": "Heroku HTTP Router",
+          "url": "https://devcenter.heroku.com/articles/http-routing",
+          "type": "official"
+        }
+      ],
+      "sample_log": "sock=client at=warning code=H27 desc=\"Client Request Interrupted\" method=POST path=\"/submit/\" host=myapp.herokuapp.com fwd=17.17.17.17 dyno=web.1 connect=1ms service=0ms status=499 bytes=0",
+      "parser_type": "heroku_router"
+    },
+    {
+      "id": "json_structured",
+      "name": "JSON Structured Log",
+      "description": "Structured JSON log format",
+      "patterns": [
+        "^\\s*\\{.*\"(level|message|timestamp|log)\".*\\}\\s*$",
+        "^\\s*\\{.*\"(level|message|msg)\".*\\}\\s*$",
+        "^\\[?\\s*\\{.*\\}\\s*\\]?\\s*$"
+      ],
+      "documentation": [
+        {
+          "title": "Coralogix JSON EXTRACT Rule",
+          "url": "https://coralogix.com/docs/user-guides/data-transformation/parsing/rule-types/#json-extract",
+          "type": "coralogix"
+        }
+      ],
+      "sample_log": "{\"level\":\"INFO\",\"message\":\"Request processed\",\"timestamp\":\"2025-03-05T10:15:32Z\"}",
+      "parser_type": "json"
+    },
+    {
+      "id": "syslog_rfc5424",
+      "name": "Syslog RFC 5424",
+      "description": "Structured syslog format (RFC 5424)",
+      "patterns": [
+        "^<\\d+>\\d+ \\d{4}-\\d{2}-\\d{2}T",
+        "<\\d+>\\d \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}",
+        "\\d+ \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z"
+      ],
+      "documentation": [
+        {
+          "title": "RFC 5424 - Syslog Protocol",
+          "url": "https://datatracker.ietf.org/doc/html/rfc5424",
+          "type": "official"
+        },
+        {
+          "title": "AWS CloudWatch Syslog",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "<34>1 2025-03-05T10:15:32.003Z myapp - - - [meta] message",
+      "parser_type": "syslog_rfc5424"
+    },
+    {
+      "id": "syslog_rfc3164",
+      "name": "Syslog RFC 3164 (BSD)",
+      "description": "Traditional BSD syslog format",
+      "patterns": [
+        "[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}",
+        "\\w+ \\d{1,2} \\d{2}:\\d{2}:\\d{2} .*",
+        "Mar \\d{1,2} \\d{2}:\\d{2}:\\d{2}"
+      ],
+      "documentation": [
+        {
+          "title": "RFC 3164 - BSD Syslog",
+          "url": "https://www.ietf.org/rfc/rfc3164.txt",
+          "type": "official"
+        }
+      ],
+      "sample_log": "Mar  5 10:15:32 hostname app[12345]: Connection refused",
+      "parser_type": "syslog_rfc3164"
+    },
+    {
+      "id": "kubernetes",
+      "name": "Kubernetes Container Log",
+      "description": "Kubernetes pod/container stdout logs",
+      "patterns": [
+        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z.*\\[.*\\]",
+        "\\[\\d{4}-\\d{2}-\\d{2}T.*\\].*ERROR|INFO|WARN",
+        "\"log\":.*\"stream\":\"stdout\""
+      ],
+      "documentation": [
+        {
+          "title": "Kubernetes Logging",
+          "url": "https://kubernetes.io/docs/concepts/cluster-administration/logging/",
+          "type": "official"
+        },
+        {
+          "title": "Kubernetes Ingress-Nginx",
+          "url": "https://kubernetes.github.io/ingress-nginx/",
+          "type": "official"
+        }
+      ],
+      "sample_log": "2025-03-05T10:15:32.389Z ERROR [CamelJettyServer-481] [App.java:130] Route failed",
+      "parser_type": "kubernetes"
+    },
+    {
+      "id": "aws_cloudwatch",
+      "name": "AWS CloudWatch Logs",
+      "description": "AWS CloudWatch log format",
+      "patterns": [
+        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z\\s+",
+        "\"timestamp\":.*\"message\":",
+        "START RequestId:",
+        "END RequestId:",
+        "REPORT RequestId:"
+      ],
+      "documentation": [
+        {
+          "title": "CloudWatch Logs",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html",
+          "type": "official"
+        },
+        {
+          "title": "CloudWatch Log Parsing",
+          "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch-Logs-Transformation-Configurable.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "2025-03-05T10:15:32.123Z\tINFO\tRequest completed\t{\"requestId\":\"abc-123\"}",
+      "parser_type": "aws_cloudwatch"
+    },
+    {
+      "id": "java_log4j",
+      "name": "Java Log4j/Logback",
+      "description": "Java application logs (Log4j, Logback, SLF4J)",
+      "patterns": [
+        "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d+.*\\[.*\\].*",
+        "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d+ (DEBUG|INFO|WARN|ERROR)",
+        "\\[\\d{4}-\\d{2}-\\d{2}.*\\].* (DEBUG|INFO|WARN|ERROR)"
+      ],
+      "documentation": [
+        {
+          "title": "Log4j 2 Configuration",
+          "url": "https://logging.apache.org/log4j/2.x/manual/configuration.html",
+          "type": "official"
+        },
+        {
+          "title": "Logback Documentation",
+          "url": "https://logback.qos.ch/documentation.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "2025-03-05 10:15:32.389 ERROR [main] com.example.App - Connection failed",
+      "parser_type": "java_log"
+    },
+    {
+      "id": "docker",
+      "name": "Docker Container Log",
+      "description": "Docker container stdout/stderr logs",
+      "patterns": [
+        "\\{\"log\":\".*\",\"stream\":\"(stdout|stderr)\"",
+        "\"log\":\".*\",\"stream\":",
+        "\\{\"message\":.*\"timestamp\":"
+      ],
+      "documentation": [
+        {
+          "title": "Docker Logging",
+          "url": "https://docs.docker.com/config/containers/logging/",
+          "type": "official"
+        }
+      ],
+      "sample_log": "{\"log\":\"2025-03-05 10:15:32 INFO Starting app\\n\",\"stream\":\"stdout\",\"time\":\"2025-03-05T10:15:32.123456789Z\"}",
+      "parser_type": "docker"
+    },
+    {
+      "id": "linux_auth",
+      "name": "Linux auth.log / secure",
+      "description": "PAM authentication logs (auth.log, secure) - SSH, sudo, login, session",
+      "patterns": [
+        "[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}.*(sshd|sudo|su|login|polkit).*:",
+        "pam_unix.*session (opened|closed)",
+        "Accepted|Failed password",
+        "session opened for user|session closed for user"
+      ],
+      "documentation": [
+        {
+          "title": "Understanding auth.log",
+          "url": "https://www.cyberengage.org/post/understanding-linux-kernel-logs-syslogs-authentication-logs-and-user-management",
+          "type": "official"
+        },
+        {
+          "title": "Linux Log Files",
+          "url": "https://www.redhat.com/sysadmin/rsyslog-systemd-journald-linux-logs",
+          "type": "official"
+        }
+      ],
+      "sample_log": "Mar  9 10:15:32 hostname sshd[12345]: Accepted password for root from 192.168.1.1 port 22 ssh2",
+      "parser_type": "linux_auth"
+    },
+    {
+      "id": "linux_syslog",
+      "name": "Linux syslog / messages",
+      "description": "General system logs (syslog, messages) - RFC 3164 format",
+      "patterns": [
+        "[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}",
+        "\\w+ \\d{1,2} \\d{2}:\\d{2}:\\d{2} .*"
+      ],
+      "documentation": [
+        {
+          "title": "RFC 3164 - BSD Syslog",
+          "url": "https://www.ietf.org/rfc/rfc3164.txt",
+          "type": "official"
+        }
+      ],
+      "sample_log": "Mar  9 10:15:32 hostname systemd[1]: Started User Manager for UID 1000",
+      "parser_type": "linux_syslog"
+    },
+    {
+      "id": "linux_kern",
+      "name": "Linux kern.log",
+      "description": "Kernel messages - RFC 3164 format",
+      "patterns": [
+        "[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}.*kernel",
+        "\\[\\s*\\d+\\.\\d+\\].*"
+      ],
+      "documentation": [
+        {
+          "title": "Linux Kernel Logging",
+          "url": "https://www.kernel.org/doc/html/latest/admin-guide/sysrq.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "Mar  9 10:15:32 hostname kernel: [ 1234.567890] usb 1-1: new high-speed USB device",
+      "parser_type": "linux_kern"
+    },
+    {
+      "id": "linux_cron",
+      "name": "Linux cron",
+      "description": "Cron job logs - RFC 3164 format",
+      "patterns": [
+        "[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}.*CRON",
+        "\\(root\\) CMD|CRON\\[\\d+\\]:"
+      ],
+      "documentation": [
+        {
+          "title": "Cron Logging",
+          "url": "https://man7.org/linux/man-pages/man8/cron.8.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "Mar  9 10:15:32 hostname CRON[12345]: (root) CMD (/usr/bin/backup.sh)",
+      "parser_type": "linux_cron"
+    },
+    {
+      "id": "linux_dpkg",
+      "name": "Linux dpkg.log",
+      "description": "Debian/Ubuntu package manager logs",
+      "patterns": [
+        "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2} (startup|status|configure|install|remove)",
+        "status installed|status unpacked"
+      ],
+      "documentation": [
+        {
+          "title": "dpkg Log Format",
+          "url": "https://manpages.debian.org/unstable/dpkg/dpkg.1.en.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "2025-03-09 10:15:32 status installed nginx:amd64 1.24.0-1",
+      "parser_type": "linux_dpkg"
+    },
+    {
+      "id": "linux_mail",
+      "name": "Linux mail.log",
+      "description": "Mail server logs (Postfix, sendmail) - RFC 3164 format",
+      "patterns": [
+        "[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}.*(postfix|sendmail|qmgr)",
+        "status=sent|status=bounced|from=.*to="
+      ],
+      "documentation": [
+        {
+          "title": "Postfix Logging",
+          "url": "https://www.postfix.org/BASIC_CONFIGURATION_README.html",
+          "type": "official"
+        }
+      ],
+      "sample_log": "Mar  9 10:15:32 hostname postfix/qmgr[12345]: ABC123: from=<sender@example.com>, status=sent",
+      "parser_type": "linux_mail"
+    },
+    {
+      "id": "otel_json_body",
+      "name": "OTEL JSON Body Extractor",
+      "description": "Extracts logRecord.body when text contains full OTEL JSON from otelcol",
+      "patterns": [
+        "\"logRecord\".*\"body\"",
+        "\"body\"\\s*:\\s*\""
+      ],
+      "sample_log": "{\"resource\":{},\"scope\":{},\"logRecord\":{\"body\":\"2026-03-09T18:08:38 asus kernel: test\"}}",
+      "parser_type": "otel_json_body"
+    },
+    {
+      "id": "otel_linux_syslog",
+      "name": "OTEL Linux Syslog (journald)",
+      "description": "Logs from otelcol-contrib - logRecord.body format: ISO_TIMESTAMP hostname tag: message",
+      "patterns": [
+        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}",
+        "\\d{4}-\\d{2}-\\d{2}T[\\d:\\.+-]+\\s+\\S+\\s+\\S+:"
+      ],
+      "documentation": [
+        {
+          "title": "OpenTelemetry Logging",
+          "url": "https://coralogix.com/guides/opentelemetry/opentelemetry-logging-practical-guide/",
+          "type": "official"
+        }
+      ],
+      "sample_log": "2026-03-09T18:08:38.510893+05:30 asus kernel: [UFW BLOCK] IN=wlo1 OUT= MAC=01:00:5e:00:00:01 SRC=192.168.29.1 DST=224.0.0.1 LEN=36 PROTO=2",
+      "parser_type": "otel_linux_syslog"
+    },
+    {
+      "id": "otel_linux_ufw",
+      "name": "OTEL Linux UFW",
+      "description": "UFW firewall logs from otelcol - extracts SRC, DST, IN, OUT, PROTO from [UFW BLOCK]",
+      "patterns": [
+        "\\[UFW BLOCK\\]",
+        "SRC=\\d+\\.\\d+\\.\\d+\\.\\d+.*DST="
+      ],
+      "documentation": [
+        {
+          "title": "UFW Log Format",
+          "url": "https://help.ubuntu.com/community/UFW",
+          "type": "official"
+        }
+      ],
+      "sample_log": "2026-03-09T18:08:38.510893+05:30 asus kernel: [UFW BLOCK] IN=wlo1 OUT= MAC=01:00:5e:00:00:01:8c:83:94:b5:ce:c0:08:00 SRC=192.168.29.1 DST=224.0.0.1 LEN=36 TOS=0x00 PREC=0x00 TTL=1 ID=55370 DF PROTO=2",
+      "parser_type": "otel_linux_ufw"
+    },
+    {
+      "id": "otel_linux_dpkg",
+      "name": "OTEL Linux dpkg",
+      "description": "dpkg.log from otelcol - body format: timestamp action details",
+      "patterns": [
+        "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2} (startup|status|configure)"
+      ],
+      "sample_log": "2025-03-09 10:15:32 status installed nginx:amd64 1.24.0-1",
+      "parser_type": "linux_dpkg"
+    },
+    {
+      "id": "otel_linux_secure",
+      "name": "OTEL Linux secure & cron (auth.log, cron)",
+      "description": "OTEL JSON with body containing /var/log/secure or /var/log/cron - RFC 3164 format. Extracts action, app, eventtype, host, pid, process, user, src_ip, dest, dvc, tag, cron_cmd, date fields.",
+      "patterns": [
+        "\"attributes\".*\"log\\.file\\.name\".*\"(secure|cron)\"",
+        "\"body\"\\s*:\\s*\"[A-Za-z]{3}\\s+\\d{1,2}\\s+\\d{2}:\\d{2}:\\d{2}",
+        "pam_unix.*session (opened|closed)",
+        "sshd.*(Received disconnect|Accepted|Failed)",
+        "CROND\\[\\d+\\]:.*\\(\\w+\\) CMD"
+      ],
+      "sample_log": "{\"attributes\":{\"log.file.name\":\"secure\",\"log.file.path\":\"/var/log/secure\"},\"body\":\"Mar  9 13:41:05 aue1pddzevents02b runuser[3000576]: pam_unix(runuser:session): session opened for user rabbitmq(uid=989) by (uid=0)\",\"resource\":{\"attributes\":{\"host.name\":\"aue1pddzevents02b\"}}}",
+      "parser_type": "otel_linux_secure"
+    }
+  ]
+}
