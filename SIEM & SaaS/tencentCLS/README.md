@@ -127,18 +127,10 @@ EOF
 
 ````bash
 sudo systemctl status cls-forwarder          # check status
+sudo journalctl -u cls-forwarder -n 100      # view last 100 log lines
 sudo systemctl restart cls-forwarder         # restart after config change
 sudo systemctl stop cls-forwarder            # stop
 sudo systemctl disable --now cls-forwarder   # stop and disable on boot
-````
-
-### View logs
-
-````bash
-sudo journalctl -u cls-forwarder -f                   # tail live
-sudo journalctl -u cls-forwarder --since "1 hour ago" # last hour
-sudo journalctl -u cls-forwarder -n 200               # last 200 lines
-sudo journalctl -u cls-forwarder | grep STATS         # only the periodic stats lines
 ````
 
 ### Updating config
@@ -146,7 +138,7 @@ sudo journalctl -u cls-forwarder | grep STATS         # only the periodic stats 
 After editing `forwarder.py`:
 
 ````bash
-sudo systemctl restart cls-forwarder && sudo journalctl -u cls-forwarder -f
+sudo systemctl restart cls-forwarder
 ````
 
 ### Uninstall
@@ -171,16 +163,16 @@ You should see new records appearing within a minute of the service starting.
 
 ## Troubleshooting
 
-| Symptom in logs                                                               | Likely cause                                              | Fix                                                                                               |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Symptom in logs                                                               | Likely cause                                              | Fix                                                                                                                         |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `ModuleNotFoundError: No module named 'tencentcloud.log'`                     | SDK not installed, or wrong Python interpreter            | Re-run the `pip3 install` step; confirm `python3 -c "from tencentcloud.log.consumer import ConsumerWorker"` prints no error |
-| `Coralogix auth failed: 401` or `403`                                         | Wrong API key or wrong `CORALOGIX_DOMAIN`                 | Confirm key type is "Send Your Data" and the domain matches your Coralogix team region            |
-| `Failed to initialize consumer ... AuthFailure`                               | Wrong `TC_SECRET_ID` / `TC_SECRET_KEY`                    | Regenerate in CAM; make sure the sub-account has `QcloudCLSReadOnlyAccess` (or equivalent)        |
-| `Failed to initialize consumer ... endpoint` / `RegionNotFound`               | Wrong `TC_ENDPOINT` or `TC_REGION`                        | Format is `<region>.cls.tencentcs.com` and region must match                                      |
-| Service runs but `fetched=0` over multiple STATS lines while logs are landing | Wrong `TC_LOGSET_ID` / `TC_TOPIC_IDS`, or no new data yet | Double-check IDs in the CLS Console; set `TC_INITIAL_START_TIME_UTC="begin"` for one run to test  |
-| Another system stopped receiving logs after you started this                  | Consumer group name collision                             | Change `TC_CONSUMER_GROUP` to something unique and restart                                        |
-| `batches_failed` rising, `last_error='http 429 ...'`                          | Hitting Coralogix rate limit                              | Reduce `BATCH_MAX_RECORDS` or deploy fewer parallel replicas                                      |
-| Forwarder falling behind (ever-growing gap between `fetched` and wall time)   | One replica isn't enough                                  | Run additional replicas with the same `TC_CONSUMER_GROUP` but different `TC_CONSUMER_NAME` values |
+| `Coralogix auth failed: 401` or `403`                                         | Wrong API key or wrong `CORALOGIX_DOMAIN`                 | Confirm key type is "Send Your Data" and the domain matches your Coralogix team region                                      |
+| `Failed to initialize consumer ... AuthFailure`                               | Wrong `TC_SECRET_ID` / `TC_SECRET_KEY`                    | Regenerate in CAM; make sure the sub-account has `QcloudCLSReadOnlyAccess` (or equivalent)                                  |
+| `Failed to initialize consumer ... endpoint` / `RegionNotFound`               | Wrong `TC_ENDPOINT` or `TC_REGION`                        | Format is `<region>.cls.tencentcs.com` and region must match                                                                |
+| Service runs but `fetched=0` over multiple STATS lines while logs are landing | Wrong `TC_LOGSET_ID` / `TC_TOPIC_IDS`, or no new data yet | Double-check IDs in the CLS Console; set `TC_INITIAL_START_TIME_UTC="begin"` for one run to test                            |
+| Another system stopped receiving logs after you started this                  | Consumer group name collision                             | Change `TC_CONSUMER_GROUP` to something unique and restart                                                                  |
+| `batches_failed` rising, `last_error='http 429 ...'`                          | Hitting Coralogix rate limit                              | Reduce `BATCH_MAX_RECORDS` or deploy fewer parallel replicas                                                                |
+| Forwarder falling behind (ever-growing gap between `fetched` and wall time)   | One replica isn't enough                                  | Run additional replicas with the same `TC_CONSUMER_GROUP` but different `TC_CONSUMER_NAME` values                           |
 
 ---
 
@@ -201,3 +193,6 @@ CLS will automatically distribute the topic's partitions across them. As a rule 
 - Duplicates: a small number can occur if the process is killed between a successful Coralogix POST and the offset commit. Acceptable for audit/activity log use cases.
 - Log age: Coralogix silently rejects records older than 24 hours at ingest. If you set `TC_INITIAL_START_TIME_UTC="begin"` on a long-retained topic, anything older than 24 h won't appear in Coralogix.
 - Resource use: idle footprint around 40–80 MB RAM; a single replica handles a few thousand records per second comfortably on a 1-vCPU host.
+
+````
+````
