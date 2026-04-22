@@ -17,7 +17,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from tencentcloud_cls_sdk_python.consumer import (
+from tencentcloud.log.consumer import (
     ConsumerProcessorBase,
     ConsumerWorker,
     LogHubConfig,
@@ -41,7 +41,7 @@ TC_SECRET_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 TC_ENDPOINT = "ap-mumbai.cls.tencentcs.com"
 
 # Region code matching the endpoint above.
-TC_REGION = "" #ap-mumbai
+TC_REGION = "ap-mumbai"
 
 # Logset ID from CLS Console -> Logsets.
 TC_LOGSET_ID = "00000000-1111-2222-3333-444444444444"
@@ -73,7 +73,7 @@ CORALOGIX_KEY = "cxtp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 #   coralogix.com        US1 / EU1
 #   coralogix.us         US2
 #   eu2.coralogix.com    EU2
-CORALOGIX_DOMAIN = "" #coralogix.in
+CORALOGIX_DOMAIN = "coralogix.in"
 CORALOGIX_URL    = f"https://ingress.{CORALOGIX_DOMAIN}/logs/v1/singles"
 
 APP_NAME       = "tencent"
@@ -338,8 +338,6 @@ def main():
     try:
         worker = ConsumerWorker(Forwarder, consumer_option=cfg)
     except Exception as e:
-        # Usually signals bad credentials, wrong region/endpoint, or a
-        # permissions problem on the logset/topic.
         log.error("Failed to initialize consumer (check credentials, "
                   "endpoint, region, logset/topic permissions): %s", e)
         sys.exit(3)
