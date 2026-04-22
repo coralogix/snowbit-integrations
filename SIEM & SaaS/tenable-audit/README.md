@@ -1,4 +1,4 @@
-# Tenable → Coralogix audit log forwarder
+# Tenable Audit → Coralogix log forwarder
 
 A small, self-contained Python service that polls the Tenable Vulnerability
 Management **activity log** endpoint and ships new events to Coralogix.
