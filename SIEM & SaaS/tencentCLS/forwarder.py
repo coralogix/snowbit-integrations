@@ -68,12 +68,14 @@ TC_CONSUMER_NAME  = "coralogix-forwarder-1"
 CORALOGIX_KEY = "cxtp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # Regional domain:
-#   coralogix.in         AP1 (India)
-#   coralogixsg.com      AP2 (Singapore)
-#   coralogix.com        US1 / EU1
-#   coralogix.us         US2
-#   eu2.coralogix.com    EU2
-CORALOGIX_DOMAIN = "coralogix.in"
+#   ap1.coralogix.com      AP1
+#   ap2.coralogix.com      AP2
+#   ap3.coralogix.com      AP3
+#   eu1.coralogix.com      EU1
+#   eu2.coralogix.com      EU2
+#   us1.coralogix.com      US1
+#   us2.coralogix.com      US1
+CORALOGIX_DOMAIN = "< Domain >"
 CORALOGIX_URL    = f"https://ingress.{CORALOGIX_DOMAIN}/logs/v1/singles"
 
 APP_NAME       = "tencent"
