@@ -1,0 +1,76 @@
+receivers:
+  windowseventlog/application:
+    channel: application
+    exclude_providers:
+      - cx-otelcol
+  windowseventlog/system:
+    channel: system
+  windowseventlog/security:
+    channel: security
+  filelog/iis:
+    include:
+      - C:\inetpub\logs\LogFiles\W3SVC*\*.log
+    start_at: end
+    include_file_path: true
+  filelog/dotnet_stdout:
+    include:
+      - C:\inetpub\logs\stdout\*.log
+    start_at: end
+    include_file_path: true
+  filelog/dotnet_backend:
+    include:
+      - C:\Logs\**\*.log
+    start_at: end
+    include_file_path: true
+
+processors:
+  resourcedetection:
+    detectors: ["system"]
+    system:
+      hostname_sources: ["os"]
+  batch:
+
+exporters:
+  coralogix/windows-events:
+    domain: "ap1.coralogix.com"
+    private_key: "<api-key>"
+    application_name: "Windows"
+    subsystem_name: "TestWinEvent"
+    timeout: 30s
+  coralogix/iis:
+    domain: "ap1.coralogix.com"
+    private_key: "<api-key>"
+    application_name: "Windows"
+    subsystem_name: "TestIIS"
+    timeout: 30s
+  coralogix/dotnet-app:
+    domain: "ap1.coralogix.com"
+    private_key: "<api-key>"
+    application_name: "Windows"
+    subsystem_name: "TestDotNet-app"
+    timeout: 30s
+  coralogix/dotnet-backend:
+    domain: "ap1.coralogix.com"
+    private_key: "<api-key>"
+    application_name: "Windows"
+    subsystem_name: "TestDotBackend"
+    timeout: 30s
+
+service:
+  pipelines:
+    logs/windows-events:
+      receivers: [ windowseventlog/application, windowseventlog/system, windowseventlog/security ]
+      processors: [ resourcedetection, batch ]
+      exporters: [ coralogix/windows-events ]
+    logs/iis:
+      receivers: [ filelog/iis ]
+      processors: [ resourcedetection, batch ]
+      exporters: [ coralogix/iis ]
+    logs/dotnet-app:
+      receivers: [ filelog/dotnet_stdout ]
+      processors: [ resourcedetection, batch ]
+      exporters: [ coralogix/dotnet-app ]
+    logs/dotnet-backend:
+      receivers: [ filelog/dotnet_backend ]
+      processors: [ resourcedetection, batch ]
+      exporters: [ coralogix/dotnet-backend ]
