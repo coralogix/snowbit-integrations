@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Ship Teleport S3 parquet audit logs to Coralogix
+
+Parameters:
+  TeleportEventsBucket:
+    Type: String
+    Description: S3 bucket that holds Teleport parquet audit events
+  EventsPrefix:
+    Type: String
+    Default: events/
+    Description: Prefix for parquet objects (exclude session recordings)
+  ImageUri:
+    Type: String
+    Description: ECR image URI built from this folder's Dockerfile
+  CoralogixDomain:
+    Type: String
+    Default: eu1.coralogix.com
+  CoralogixApplication:
+    Type: String
+    Default: teleport
+  CoralogixSubsystem:
+    Type: String
+    Default: audit
+  CoralogixApiKey:
+    Type: String
+    NoEcho: true
+
+Resources:
+  TeleportParquetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: teleport-s3-parquet-coralogix
+      PackageType: Image
+      ImageUri: !Ref ImageUri
+      Timeout: 300
+      MemorySize: 1024
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CORALOGIX_SEND_YOUR_DATA_KEY: !Ref CoralogixApiKey
+          CORALOGIX_DOMAIN: !Ref CoralogixDomain
+          CORALOGIX_APPLICATION_NAME: !Ref CoralogixApplication
+          CORALOGIX_SUBSYSTEM_NAME: !Ref CoralogixSubsystem
+          S3_KEY_PREFIX: !Ref EventsPrefix
+          S3_KEY_SUFFIX: .parquet
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref TeleportEventsBucket
+      Events:
+        NewParquet:
+          Type: S3
+          Properties:
+            Bucket: !Ref TeleportEventsBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: !Ref EventsPrefix
+                  - Name: suffix
+                    Value: .parquet
+
+Outputs:
+  FunctionArn:
+    Value: !GetAtt TeleportParquetFunction.Arn
