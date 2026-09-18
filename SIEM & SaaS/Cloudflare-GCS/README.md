@@ -26,7 +26,7 @@ This path is for accounts that already land Logpush in GCS. If you also ship Clo
 
 - GCP project with billing, Cloud Functions, Eventarc, and Cloud Storage APIs enabled
 - A GCS bucket that Cloudflare Logpush already writes to
-- Coralogix Send-Your-Data API key (Coralogix -> **Data Flow -> API Keys**)
+- Coralogix Send-Your-Data API key (Coralogix -> **Settings -> API Keys**)
 - Coralogix domain (`eu1.coralogix.com`, `us1.coralogix.com`, `coralogix.in`, ...)
 - `gcloud` CLI authenticated to the project
 
