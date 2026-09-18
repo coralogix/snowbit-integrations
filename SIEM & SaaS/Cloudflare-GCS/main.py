@@ -90,7 +90,8 @@ def _subsystem() -> str:
 @functions_framework.cloud_event
 def ship_cloudflare_logs(cloud_event: CloudEvent) -> None:
     """Eventarc / GCS finalize entry point (Cloud Functions 2nd gen)."""
-    result = process_event(cloud_event.data or {}, dict(cloud_event))
+    data = cloud_event.data if isinstance(cloud_event.data, dict) else {}
+    result = process_event(data, data)
     LOGGER.info("Done %s", result)
     if not result.get("ok"):
         raise RuntimeError(f"Failed to ship Cloudflare logs: {result}")
