@@ -79,6 +79,17 @@ docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
   -t "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:latest" --push .
 ```
 
+Create the function (if you are not using Terraform):
+
+- Runtime: **Container image**
+- Image: the URI you pushed
+- Architecture: **x86_64**
+- Memory: **1024 MB** (2048 MB if parquet files are large)
+- Timeout: **5 minutes**
+- Environment variables from `env.example`
+
+Attach `iam-policy.json` (replace the bucket, prefix, and KMS key if the bucket uses SSE-KMS).
+
 ## S3 trigger
 
 On the Teleport **events** bucket (not session recordings):
@@ -124,6 +135,8 @@ aws s3 ls s3://YOUR-BUCKET/events/ --recursive \
         /tmp/out.json
     done
 ```
+
+Or invoke with a captured S3 event from CloudWatch.
 
 ## Finding logs in Coralogix
 
