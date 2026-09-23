@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Teleport S3 Parquet to Coralogix — Architecture and Deployment</title>
+  <style>
+    @page { size: A4; margin: 16mm 16mm 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #1a1f2e;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      margin: 0;
+    }
+    h1 { font-size: 20pt; margin: 0 0 6px; color: #0b1b3f; }
+    h2 { font-size: 13.5pt; margin: 22px 0 8px; color: #0b1b3f; border-bottom: 2px solid #2b6cb0; padding-bottom: 4px; page-break-after: avoid; }
+    h3 { font-size: 11.5pt; margin: 14px 0 6px; color: #1a365d; page-break-after: avoid; }
+    p { margin: 0 0 8px; }
+    .cover {
+      border-left: 6px solid #2b6cb0;
+      padding: 8px 0 8px 16px;
+      margin-bottom: 18px;
+    }
+    .meta { color: #4a5568; font-size: 9.5pt; }
+    .badge {
+      display: inline-block;
+      background: #ebf4ff;
+      color: #2b6cb0;
+      border: 1px solid #90cdf4;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 8.5pt;
+      margin-right: 6px;
+    }
+    .note {
+      background: #fffbeb;
+      border: 1px solid #f6ad55;
+      padding: 8px 10px;
+      margin: 10px 0;
+      page-break-inside: avoid;
+    }
+    .warn {
+      background: #fff5f5;
+      border: 1px solid #fc8181;
+      padding: 8px 10px;
+      margin: 10px 0;
+      page-break-inside: avoid;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 12px;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+    th {
+      background: #1a365d;
+      color: #fff;
+      text-align: left;
+      padding: 6px 8px;
+      font-weight: 600;
+    }
+    td {
+      border: 1px solid #cbd5e0;
+      padding: 5px 8px;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f7fafc; }
+    pre, code {
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 10px 12px;
+      font-size: 8pt;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-word;
+      page-break-inside: avoid;
+    }
+    code { font-size: 9pt; background: #edf2f7; padding: 1px 4px; }
+    pre code { background: none; padding: 0; color: inherit; }
+    .flow {
+      display: table;
+      width: 100%;
+      margin: 10px 0 14px;
+      page-break-inside: avoid;
+    }
+    .step {
+      display: table-cell;
+      width: 20%;
+      vertical-align: top;
+      padding: 0 4px;
+    }
+    .box {
+      border: 1.5px solid #2b6cb0;
+      background: #ebf8ff;
+      padding: 8px 6px;
+      min-height: 72px;
+      text-align: center;
+    }
+    .box strong { display: block; font-size: 9.5pt; }
+    .box span { display: block; color: #4a5568; font-size: 8pt; margin-top: 4px; }
+    .arrow { text-align: center; color: #2b6cb0; font-size: 14pt; height: 18px; }
+    ul { margin: 4px 0 10px 18px; padding: 0; }
+    li { margin-bottom: 3px; }
+    .footer-note { color: #718096; font-size: 8.5pt; margin-top: 20px; }
+    .two { width: 100%; display: table; margin: 8px 0; }
+    .col { display: table-cell; width: 50%; vertical-align: top; padding-right: 10px; }
+    .col + .col { padding-right: 0; padding-left: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="cover">
+    <div class="meta">Coralogix Snowbit Integrations · Client pack</div>
+    <h1>Teleport S3 Parquet to Coralogix</h1>
+    <p class="meta">Architecture, Lambda image, IAM, and Terraform deployment</p>
+    <p>
+      <span class="badge">Package: container image</span>
+      <span class="badge">Architecture: x86_64 / linux/amd64</span>
+      <span class="badge">No Lambda layers</span>
+    </p>
+  </div>
+
+  <p>This integration is for Teleport clusters that already use <strong>External Audit Storage / Athena</strong> and land audit events as Snappy-compressed parquet in S3. An AWS Lambda function reads each new object and POSTs every event to the Coralogix Logs API.</p>
+  <p>Terraform does <strong>not</strong> create the Teleport cluster or the events bucket. Those already exist. The module creates ECR (unless you supply an image), the Lambda function, the execution role, and an optional S3 notification.</p>
+
+  <div class="warn"><strong>Do not run in parallel with Teleport Event Handler / OpenTelemetry export</strong> unless you want duplicate events in Coralogix.</div>
+
+  <h2>1. End-to-end architecture</h2>
+
+  <div class="flow">
+    <div class="step">
+      <div class="box"><strong>Teleport</strong><span>External Audit Storage</span></div>
+    </div>
+    <div class="step">
+      <div class="box"><strong>S3 events bucket</strong><span>events/YYYY-MM-DD/*.parquet</span></div>
+    </div>
+    <div class="step">
+      <div class="box"><strong>AWS Lambda</strong><span>Image · 1024 MB · 300 s</span></div>
+    </div>
+    <div class="step">
+      <div class="box"><strong>Coralogix ingest</strong><span>POST /logs/v1/bulk</span></div>
+    </div>
+    <div class="step">
+      <div class="box"><strong>Explore</strong><span>app=teleport · sub=audit</span></div>
+    </div>
+  </div>
+  <div class="arrow">write parquet → ObjectCreated → parse &amp; ship → query by parquet event_time</div>
+
+  <pre>s3://&lt;events-bucket&gt;/events/YYYY-MM-DD/&lt;worker&gt;-&lt;timestamp&gt;.parquet
+        |
+        |  s3:ObjectCreated:*   prefix events/   suffix .parquet
+        v
+AWS Lambda  (package_type = Image, architectures = x86_64)
+        |
+        |  POST https://ingress.&lt;CORALOGIX_DOMAIN&gt;/logs/v1/bulk
+        |  applicationName=teleport   subsystemName=audit
+        v
+Coralogix Logs  →  Explore</pre>
+
+  <p>The S3 trigger fires only for <strong>new</strong> objects. Existing files need a backfill invoke. The handler also unwraps SNS or SQS that wrap the same S3 JSON, and accepts a direct payload:</p>
+  <pre>{"bucket": "your-events-bucket", "key": "events/2026-09-11/file.parquet"}</pre>
+
+  <h2>2. Why a container image (not zip, not layers)</h2>
+  <p>Teleport parquet is Snappy-compressed. Reading it in Python requires <strong>pyarrow</strong>. That library is too large for a typical Lambda zip package (50 MB uploaded / 250 MB unzipped). A Lambda <strong>layer</strong> has the same unzipped size cap and must still match Python 3.12 and x86_64. This integration therefore uses a <strong>container image only</strong> and attaches <strong>no layers</strong>. Dependencies are installed inside the image.</p>
+
+  <table>
+    <thead><tr><th>Option</th><th>Limit / issue</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>Lambda zip</td><td>50 MB uploaded, 250 MB unzipped; pyarrow wheel is ~50 MB</td><td>Not reliable</td></tr>
+      <tr><td>Lambda layer</td><td>Same unzipped cap; extra build that must match runtime/arch</td><td>Do not use</td></tr>
+      <tr><td>Container image</td><td>Up to 10 GB; <code>pip install</code> on the official AWS base</td><td><strong>Required</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h2>3. Image that is required</h2>
+  <p>Use the official AWS Lambda Python 3.12 base. This image includes the Lambda Runtime Interface Client (RIC). The function CMD must be <code>lambda_function.lambda_handler</code>.</p>
+  <pre>FROM public.ecr.aws/lambda/python:3.12
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir -r requirements.txt
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}/
+CMD ["lambda_function.lambda_handler"]</pre>
+
+  <table>
+    <thead><tr><th>Requirement</th><th>Value</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Base image</td><td><code>public.ecr.aws/lambda/python:3.12</code></td><td>Official RIC + Python 3.12. Generic Python or Alpine images are not Lambda-compatible.</td></tr>
+      <tr><td>OS / CPU</td><td><code>linux/amd64</code> (x86_64)</td><td>Terraform sets <code>architectures = ["x86_64"]</code>. An arm64 / Apple-silicon-only image will not run.</td></tr>
+      <tr><td>Manifest</td><td>Single image, not a Docker index</td><td>Lambda rejects attestation/SBOM indexes: “The image manifest … is not supported”.</td></tr>
+      <tr><td>Build flags</td><td><code>--platform linux/amd64 --provenance=false --sbom=false --push</code></td><td>Required on Apple silicon and on Docker Desktop (attestations are on by default).</td></tr>
+      <tr><td>Python packages</td><td><code>pyarrow&gt;=17</code>, <code>boto3&gt;=1.34</code></td><td>Snappy parquet + S3 GetObject. No other OS packages.</td></tr>
+      <tr><td>Registry</td><td>ECR, same account and region as Lambda</td><td>Default repo/tag: <code>teleport-s3-parquet-coralogix:latest</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Image filesystem (Docker layers)</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>Contents</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>1. AWS base</td><td>Amazon Linux, Python 3.12, Lambda RIC</td><td>What the Lambda service boots</td></tr>
+      <tr><td>2. pip install</td><td>pyarrow, boto3</td><td>Read parquet; call S3. No Lambda layers attached.</td></tr>
+      <tr><td>3. Application</td><td><code>lambda_function.py</code></td><td>Handler only</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Lambda architecture (the function)</h2>
+  <table>
+    <thead><tr><th>Setting</th><th>Default</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Package type</td><td>Image</td><td>Not Zip</td></tr>
+      <tr><td>Architecture</td><td>x86_64</td><td>Must match the image</td></tr>
+      <tr><td>Memory</td><td>1024 MB</td><td>Use 2048 MB for large parquet files (also more CPU)</td></tr>
+      <tr><td>Timeout</td><td>300 seconds</td><td>A single file can contain many thousands of events</td></tr>
+      <tr><td>VPC</td><td>None</td><td>Lambda needs egress to <code>ingress.&lt;domain&gt;</code></td></tr>
+      <tr><td>Region</td><td>Same as events bucket</td><td>S3 notifications cannot target a function in another region</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Handler flow</h3>
+  <ol>
+    <li>Extract bucket and key from S3, SNS, SQS, or a direct JSON payload.</li>
+    <li>Skip if the suffix is not <code>.parquet</code>, the prefix does not match <code>events/</code>, or the path contains <code>/sessions/</code>.</li>
+    <li><code>s3.get_object</code> then <code>pyarrow.parquet.read_table</code>.</li>
+    <li>Map columns <code>uid</code>, <code>session_id</code>, <code>event_type</code>, <code>user</code>, <code>event_time</code>, <code>event_data</code> (JSON — the full Teleport audit event).</li>
+    <li>POST batches of 400 to Coralogix; retry on HTTP 429 and 5xx.</li>
+  </ol>
+
+  <h3>Environment variables</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>CORALOGIX_SEND_YOUR_DATA_KEY</td><td>Yes</td><td>—</td><td>Send-Your-Data API key (prefer TF_VAR, not a file)</td></tr>
+      <tr><td>CORALOGIX_DOMAIN</td><td>Yes</td><td>coralogix.com</td><td>Team domain only, e.g. eu1.coralogix.com — not ingress.</td></tr>
+      <tr><td>CORALOGIX_APPLICATION_NAME</td><td>No</td><td>teleport</td><td>Coralogix application</td></tr>
+      <tr><td>CORALOGIX_SUBSYSTEM_NAME</td><td>No</td><td>audit</td><td>Coralogix subsystem</td></tr>
+      <tr><td>S3_KEY_PREFIX</td><td>No</td><td>empty / events/</td><td>Ignore session recordings</td></tr>
+      <tr><td>S3_KEY_SUFFIX</td><td>No</td><td>.parquet</td><td>Object suffix</td></tr>
+      <tr><td>CORALOGIX_BATCH_SIZE</td><td>No</td><td>400</td><td>Events per HTTP request</td></tr>
+      <tr><td>DRY_RUN</td><td>No</td><td>false</td><td>Parse only, do not POST</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5. What Terraform creates — and what it does not</h2>
+  <table>
+    <thead><tr><th>Created</th><th>Purpose</th><th>Not created</th></tr></thead>
+    <tbody>
+      <tr><td>ECR repository</td><td>Holds the linux/amd64 image (unless image_uri is set)</td><td>Teleport cluster</td></tr>
+      <tr><td>IAM role + inline policy</td><td>GetObject on events/*, ListBucket, CloudWatch Logs, optional KMS</td><td>Events S3 bucket</td></tr>
+      <tr><td>Lambda (Image)</td><td>Runs the handler on each new parquet object</td><td>Session-recording pipeline</td></tr>
+      <tr><td>lambda:AddPermission + optional S3 notification</td><td>s3.amazonaws.com may InvokeFunction</td><td>Coralogix parsers</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note"><strong>S3 notification replace semantics.</strong> <code>create_s3_notification = true</code> writes a new bucket notification configuration and <em>replaces</em> any existing ones. Set it to <code>false</code> and add the trigger in the console if the Teleport bucket already notifies other systems.</div>
+  <p><code>manage_log_group = false</code> (default) lets Lambda create <code>/aws/lambda/&lt;name&gt;</code> on first invoke. Set true only if the deployer can call <code>logs:DescribeLogGroups</code> on <code>*</code>.</p>
+
+  <h2>6. IAM: deployer vs runtime</h2>
+  <div class="two">
+    <div class="col">
+      <h3>Deployer (human or CI)</h3>
+      <p>Uses <code>terraform/deployer-iam-policy.json</code>. Replace AWS_REGION, AWS_ACCOUNT_ID, and EVENTS_BUCKET.</p>
+      <ul>
+        <li>ECR create / login / push</li>
+        <li>IAM CreateRole / PassRole</li>
+        <li>Lambda create / update / invoke</li>
+        <li>S3 GetBucketNotification / PutBucketNotification</li>
+        <li>Optional DescribeLogGroups on *</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Runtime role (the function)</h3>
+      <p>Created by Terraform as <code>&lt;function_name&gt;-role</code>. Least privilege at invoke time only.</p>
+      <ul>
+        <li><code>s3:GetObject</code> on <code>events/*</code></li>
+        <li><code>s3:ListBucket</code> with prefix</li>
+        <li>CloudWatch Logs write</li>
+        <li>Optional <code>kms:Decrypt</code> if the bucket is SSE-KMS</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>7. Prerequisites</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Terraform &gt;= 1.5</td><td><code>terraform version</code></td></tr>
+      <tr><td>AWS CLI + credentials</td><td>Same account and region as the events bucket</td></tr>
+      <tr><td>Docker (or equivalent)</td><td>Must build linux/amd64, including on Apple silicon</td></tr>
+      <tr><td>Existing S3 events bucket</td><td>Teleport parquet, not session recordings</td></tr>
+      <tr><td>Coralogix Send-Your-Data key</td><td>Data Flow → API Keys</td></tr>
+      <tr><td>Coralogix domain</td><td>Must match the team: eu1.coralogix.com, eu2, us1, coralogix.in, …</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8. Deploy (recommended path)</h2>
+  <pre>cd "SIEM &amp; SaaS/Teleport-S3-Parquet/terraform"
+cp values.auto.tfvars.example values.auto.tfvars
+# edit: aws_region, events_bucket, coralogix_domain, create_s3_notification
+
+export AWS_PROFILE=your-profile
+export TF_VAR_coralogix_api_key='your-send-your-data-key'
+
+cd ..
+chmod +x deploy.sh
+./deploy.sh</pre>
+  <p><code>deploy.sh</code> runs <code>terraform init</code>, creates ECR if needed, builds and pushes the linux/amd64 image without attestations, then <code>terraform apply</code>.</p>
+
+  <h3>Terraform variables</h3>
+  <table>
+    <thead><tr><th>Name</th><th>Required</th><th>Default</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>events_bucket</td><td>Yes</td><td>—</td><td>Existing Teleport events bucket</td></tr>
+      <tr><td>coralogix_api_key</td><td>Yes</td><td>—</td><td>Export TF_VAR_coralogix_api_key — do not commit</td></tr>
+      <tr><td>aws_region</td><td>No</td><td>eu-west-1</td><td>Must match the bucket region</td></tr>
+      <tr><td>coralogix_domain</td><td>No</td><td>eu1.coralogix.com</td><td>Team domain, not ingress.</td></tr>
+      <tr><td>events_prefix / events_suffix</td><td>No</td><td>events/ · .parquet</td><td>Change if keys use a tenant prefix</td></tr>
+      <tr><td>create_s3_notification</td><td>No</td><td>true</td><td>Replaces all bucket notifications</td></tr>
+      <tr><td>manage_log_group</td><td>No</td><td>false</td><td>Needs DescribeLogGroups if true</td></tr>
+      <tr><td>image_uri</td><td>No</td><td>empty</td><td>Set to skip ECR create + build</td></tr>
+      <tr><td>kms_key_arn</td><td>No</td><td>empty</td><td>SSE-KMS buckets</td></tr>
+    </tbody>
+  </table>
+
+  <h2>9. Verify and find logs</h2>
+  <p>Success payload: <code>{"ok":true,"files":1,"events":N,"sent":N}</code>.</p>
+  <pre>aws s3 cp ./sample.parquet s3://YOUR-BUCKET/events/$(date -u +%Y-%m-%d)/sample.parquet
+
+aws lambda invoke \
+  --function-name teleport-s3-parquet-coralogix \
+  --cli-binary-format raw-in-base64-out \
+  --payload '{"bucket":"YOUR-BUCKET","key":"events/YYYY-MM-DD/sample.parquet"}' \
+  /tmp/out.json &amp;&amp; cat /tmp/out.json</pre>
+
+  <div class="note"><strong>Explore time range.</strong> Use the <em>event time stored in the parquet</em> (<code>event_time</code> / <code>time</code>), not “last 15 minutes”, unless the file is new. Query: <code>applicationName:teleport AND subsystemName:audit</code>.</div>
+
+  <h3>Backfill existing objects</h3>
+  <pre>aws s3 ls s3://YOUR-BUCKET/events/ --recursive \
+  | awk '{print $4}' | grep '\.parquet$' \
+  | while read -r key; do
+      aws lambda invoke --function-name teleport-s3-parquet-coralogix \
+        --cli-binary-format raw-in-base64-out \
+        --payload "{\"bucket\":\"YOUR-BUCKET\",\"key\":\"${key}\"}" /tmp/out.json
+    done</pre>
+
+  <h2>10. Troubleshooting</h2>
+  <table>
+    <thead><tr><th>Symptom</th><th>What to check</th></tr></thead>
+    <tbody>
+      <tr><td>Image manifest is not supported</td><td>Rebuild with --provenance=false --sbom=false and linux/amd64</td></tr>
+      <tr><td>Function never runs</td><td>Prefix/suffix, lambda:AddPermission, bucket region vs aws_region</td></tr>
+      <tr><td>AccessDenied on GetObject</td><td>Runtime role + kms:Decrypt if SSE-KMS</td></tr>
+      <tr><td>logs:DescribeLogGroups AccessDenied</td><td>Keep manage_log_group = false</td></tr>
+      <tr><td>Empty Explore</td><td>Wrong team/domain, or time range is not parquet event_time</td></tr>
+      <tr><td>Timeout</td><td>Raise memory (and CPU) and timeout</td></tr>
+      <tr><td>Duplicate events</td><td>Disable Event Handler if this S3 path is the only source</td></tr>
+    </tbody>
+  </table>
+
+  <p class="footer-note">Source: snowbit-integrations / SIEM &amp; SaaS / Teleport-S3-Parquet. Destroy with <code>terraform destroy</code> using the same variables; the events bucket is never deleted. ECR uses force_delete. Do not commit API keys or tfstate.</p>
+</body>
+</html>

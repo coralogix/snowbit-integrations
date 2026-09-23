@@ -1,0 +1,30 @@
+# Copy to values.auto.tfvars (gitignored) or pass -var / TF_VAR_*.
+# Do not commit the Send-Your-Data API key.
+
+aws_region     = "eu-west-1"
+events_bucket  = "your-teleport-events-bucket"
+events_prefix  = "events/"
+events_suffix  = ".parquet"
+function_name  = "teleport-s3-parquet-coralogix"
+
+coralogix_domain            = "eu1.coralogix.com"
+coralogix_application_name  = "teleport"
+coralogix_subsystem_name    = "audit"
+
+# Preferred: export TF_VAR_coralogix_api_key='...'
+# coralogix_api_key = ""
+
+# Leave empty so Terraform creates the ECR repository. Push the image, then apply again.
+image_uri = ""
+
+# Set false if this bucket already has other S3 notifications.
+create_s3_notification = true
+
+# Set true only if the deployer can call logs:DescribeLogGroups (see deployer-iam-policy.json).
+manage_log_group = false
+
+# kms_key_arn = "arn:aws:kms:eu-west-1:123456789012:key/..."
+
+additional_tags = {
+  Project = "teleport-coralogix"
+}
