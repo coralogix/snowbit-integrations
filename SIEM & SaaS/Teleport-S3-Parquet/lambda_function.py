@@ -237,7 +237,7 @@ def _timestamp_ms(value: Any) -> Optional[int]:
 
 
 def map_severity(event: Dict[str, Any]) -> int:
-    """Coralogix: 1 Debug … 6 Critical."""
+    """Coralogix: 1 Debug to 6 Critical."""
     code = str(event.get("code") or "")
     if code.endswith("E") or event.get("success") is False or event.get("error"):
         return 5

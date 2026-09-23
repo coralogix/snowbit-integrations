@@ -1,51 +1,215 @@
-# Teleport S3 Parquet ? Coralogix
+# Teleport S3 Parquet to Coralogix
 
-AWS Lambda that reads **Teleport Athena / External Audit Storage** parquet files from S3 and ships each audit event to the Coralogix Logs API.
+AWS Lambda that reads **Teleport External Audit Storage / Athena** parquet files from S3 and ships each audit event to the Coralogix Logs API.
 
-Teleport writes Snappy-compressed parquet, partitioned by date:
+Use this when the cluster **already** writes audit events to S3 as Snappy parquet. For live export from the Teleport API, use the Event Handler + OpenTelemetry guide under `docs/teleport-coralogix/` instead. **Do not run both** unless you want duplicate events.
+
+Terraform does **not** create Teleport or the events bucket. Clients deploy the Lambda, a private ECR repository, IAM, and an optional S3 notification.
+
+A printable client pack is in [docs/Teleport-S3-Parquet-Client-Architecture.pdf](docs/Teleport-S3-Parquet-Client-Architecture.pdf). Longer notes: [ARCHITECTURE.md](ARCHITECTURE.md) and [terraform/README.md](terraform/README.md).
+
+---
+
+## Architecture
 
 ```
-s3://<bucket>/events/YYYY-MM-DD/<worker>-<timestamp>.parquet
+Teleport cluster
+  External Audit Storage / Athena
+        |
+        |  write Snappy parquet
+        v
+S3 events bucket   (already exists — not created by Terraform)
+  s3://<bucket>/events/YYYY-MM-DD/<worker>-<timestamp>.parquet
+        |
+        |  s3:ObjectCreated:*   prefix events/   suffix .parquet
+        v
+AWS Lambda   package_type = Image   arch = x86_64
+  1024 MB memory   300 s timeout   no VPC   no Lambda layers
+  image: public.ecr.aws/lambda/python:3.12 + pyarrow + this handler
+        |
+        |  POST https://ingress.<CORALOGIX_DOMAIN>/logs/v1/bulk
+        |  applicationName = teleport   subsystemName = audit
+        v
+Coralogix Logs  →  Explore
+  Search by parquet event_time, not “last 15 minutes”
 ```
 
-Columns: `uid`, `session_id`, `event_type`, `user`, `event_time`, `event_data`  
-`event_data` is the full audit event JSON (same fields you would see in Explore as `event`, `code`, `user`, `time`, �).
+Parquet columns: `uid`, `session_id`, `event_type`, `user`, `event_time`, `event_data`.  
+`event_data` is the full Teleport audit JSON (`event`, `code`, `user`, `time`, …).
 
-```
-S3 ObjectCreated (.parquet)
-        ?
-        ?
-   Lambda (this function)
-        ?  parse parquet
-        ?
-Coralogix Logs API  POST https://ingress.<domain>/logs/v1/bulk
-        applicationName: teleport
-        subsystemName:   audit
+The handler also unwraps SNS/SQS that wrap the same S3 JSON, and a direct invoke:
+
+```json
+{"bucket": "your-events-bucket", "key": "events/2026-09-11/file.parquet"}
 ```
 
-This path is for clusters that already land audit events in S3 as parquet. For **live** export from the Teleport API, use the Event Handler + OpenTelemetry guide under `docs/teleport-coralogix/` instead. Running both will duplicate events.
+The S3 trigger fires only for **new** objects. Existing files need a backfill invoke (below). Paths under `/sessions/` are skipped.
+
+### Why a container image (not zip, not layers)
+
+| Option | Limit | Verdict |
+|--------|--------|---------|
+| Lambda zip | 50 MB uploaded / 250 MB unzipped | pyarrow is too large |
+| Lambda layer | Same unzipped cap; must match Python 3.12 + x86_64 | Do not use |
+| **Container image** | Up to 10 GB | **Required** |
+
+This integration attaches **no layers**. `pyarrow>=17` and `boto3>=1.34` are installed **inside** the image.
+
+### Image that is required
+
+```dockerfile
+FROM public.ecr.aws/lambda/python:3.12
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install --no-cache-dir -r requirements.txt
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}/
+CMD ["lambda_function.lambda_handler"]
+```
+
+| Requirement | Value | Why |
+|-------------|--------|-----|
+| Base | `public.ecr.aws/lambda/python:3.12` | Official Lambda RIC + Python 3.12 |
+| Platform | `linux/amd64` (x86_64) | Matches `architectures = ["x86_64"]`. arm64 will not run |
+| Manifest | Single image, not a Docker index | Lambda rejects attestation/SBOM indexes |
+| Build | `docker buildx --platform linux/amd64 --provenance=false --sbom=false --push` | Required on Apple silicon and Docker Desktop |
+| Store | Private ECR, **same account and region** as the function | Lambda will not run from Docker Hub or `public.ecr.aws` |
+
+Image filesystem: (1) AWS base — Amazon Linux, Python 3.12, RIC. (2) pip — pyarrow, boto3. (3) `lambda_function.py`.
+
+### What Terraform creates
+
+| Created | Not created |
+|---------|-------------|
+| ECR repository (unless you set `image_uri`) | Teleport cluster |
+| IAM role: GetObject on `events/*`, ListBucket, logs, optional KMS | Events S3 bucket |
+| Lambda (Image, x86_64, 1024 MB, 300 s) | Session-recording pipeline |
+| `lambda:AddPermission` + optional S3 notification | Coralogix parsers |
+
+`create_s3_notification = true` **replaces** the entire bucket notification config. Turn it off if other triggers already exist.
+
+IAM is split: **deployer** (`terraform/deployer-iam-policy.json`) vs **runtime** role (least privilege at invoke time).
+
+---
+
+## Deploy (Terraform)
+
+### 1. Prerequisites
+
+| Item | Notes |
+|------|--------|
+| Terraform >= 1.5 | `terraform version` |
+| AWS CLI + credentials | Same account and **region** as the events bucket |
+| Docker | Must build **linux/amd64** (also on Apple silicon) |
+| Existing S3 events bucket | Teleport parquet, not session recordings |
+| Coralogix Send-Your-Data key | Data Flow → API Keys |
+| Coralogix domain | Team domain only: `eu1.coralogix.com`, `eu2.coralogix.com`, `us1.coralogix.com`, `coralogix.in`, … |
+| Deployer IAM | Attach [terraform/deployer-iam-policy.json](terraform/deployer-iam-policy.json). Replace `AWS_REGION`, `AWS_ACCOUNT_ID`, `EVENTS_BUCKET` |
+
+If the bucket uses SSE-KMS, add `kms:Decrypt` / `DescribeKey` / `GenerateDataKey` on that key and set `kms_key_arn`.
+
+### 2. Configure
+
+```bash
+cd "SIEM & SaaS/Teleport-S3-Parquet/terraform"
+cp values.auto.tfvars.example values.auto.tfvars
+```
+
+Edit `values.auto.tfvars`:
+
+- `aws_region` — **same region as the events bucket**
+- `events_bucket` — existing bucket name
+- `events_prefix` — `events/` unless keys use another prefix (for example a tenant id)
+- `coralogix_domain` — team domain, **not** `ingress.`
+- `create_s3_notification` — `true` only if this bucket has **no other** notifications
+- `manage_log_group` — leave `false` unless the deployer can call `logs:DescribeLogGroups`
+
+Do **not** put the API key in the file. Export it:
+
+```bash
+export AWS_PROFILE=your-profile
+export TF_VAR_coralogix_api_key='your-send-your-data-key'
+```
+
+### 3. Apply
+
+```bash
+cd "SIEM & SaaS/Teleport-S3-Parquet"
+chmod +x deploy.sh
+./deploy.sh
+```
+
+`deploy.sh` runs `terraform init` → creates ECR if needed → `docker buildx` linux/amd64 **without** attestations → `terraform apply`.
+
+Manual equivalent is in [terraform/README.md](terraform/README.md). If you already have an image in ECR, set `image_uri` and skip the build.
+
+### 4. Verify
+
+The S3 trigger fires only for **new** objects.
+
+```bash
+aws s3 cp ./sample.parquet s3://YOUR-BUCKET/events/$(date -u +%Y-%m-%d)/sample.parquet
+
+aws lambda invoke \
+  --function-name teleport-s3-parquet-coralogix \
+  --cli-binary-format raw-in-base64-out \
+  --payload '{"bucket":"YOUR-BUCKET","key":"events/YYYY-MM-DD/sample.parquet"}' \
+  /tmp/out.json && cat /tmp/out.json
+```
+
+Success: `{"ok":true,"files":1,"events":N,"sent":N}`.
+
+Explore (use **parquet event time**, not “last 15 minutes”):
+
+```
+applicationName:teleport AND subsystemName:audit
+applicationName:teleport AND event:user.login
+```
+
+### 5. Backfill existing files
+
+```bash
+aws s3 ls s3://YOUR-BUCKET/events/ --recursive \
+  | awk '{print $4}' | grep '\.parquet$' \
+  | while read -r key; do
+      aws lambda invoke \
+        --function-name teleport-s3-parquet-coralogix \
+        --cli-binary-format raw-in-base64-out \
+        --payload "{\"bucket\":\"YOUR-BUCKET\",\"key\":\"${key}\"}" \
+        /tmp/out.json
+    done
+```
+
+### 6. Destroy
+
+```bash
+cd terraform
+terraform destroy
+```
+
+Use the same vars / `TF_VAR_coralogix_api_key`. ECR uses `force_delete`. The events bucket is **not** deleted.
+
+---
 
 ## Environment variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `CORALOGIX_SEND_YOUR_DATA_KEY` | Yes | � | Send-Your-Data API key |
-| `CORALOGIX_DOMAIN` | Yes | `coralogix.com` | e.g. `eu1.coralogix.com`, `eu2.coralogix.com`, `us1.coralogix.com`, `coralogix.in` |
+| `CORALOGIX_SEND_YOUR_DATA_KEY` | Yes | — | Send-Your-Data API key |
+| `CORALOGIX_DOMAIN` | Yes | `coralogix.com` | e.g. `eu1.coralogix.com` |
 | `CORALOGIX_APPLICATION_NAME` | No | `teleport` | Coralogix application |
 | `CORALOGIX_SUBSYSTEM_NAME` | No | `audit` | Coralogix subsystem |
-| `S3_KEY_PREFIX` | No | empty | Only process keys with this prefix (use `events/` so session recordings are ignored) |
-| `S3_KEY_SUFFIX` | No | `.parquet` | Object suffix filter |
+| `S3_KEY_PREFIX` | No | empty / `events/` | Ignore session recordings |
+| `S3_KEY_SUFFIX` | No | `.parquet` | Object suffix |
 | `CORALOGIX_BATCH_SIZE` | No | `400` | Events per HTTP request |
 | `CORALOGIX_TIMEOUT_SECONDS` | No | `60` | Ingest HTTP timeout |
 | `CORALOGIX_MAX_RETRIES` | No | `4` | Retries on 429/5xx |
-| `DRY_RUN` | No | `false` | Parse files but do not send |
+| `DRY_RUN` | No | `false` | Parse only, do not POST |
 | `LOG_LEVEL` | No | `INFO` | Lambda logging |
 
 `CORALOGIX_PRIVATE_KEY`, `CORALOGIX_APPLICATION`, and `CORALOGIX_SUBSYSTEM` are accepted as aliases.
 
-## Deploy (container image � recommended)
+---
 
-`pyarrow` is too large for a typical zip package. Use a Lambda container image.
+## Manual image build (no Terraform)
 
 ```bash
 cd "snowbit-integrations/SIEM & SaaS/Teleport-S3-Parquet"
@@ -58,91 +222,33 @@ aws ecr create-repository --repository-name "$REPO" --region "$REGION" || true
 aws ecr get-login-password --region "$REGION" \
   | docker login --username AWS --password-stdin "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
 
-docker build --platform linux/amd64 -t "$REPO" .
-docker tag "$REPO:latest" "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:latest"
-docker push "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:latest"
+docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+  -t "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:latest" --push .
 ```
 
-Create the function:
+Create the function: package **Container image**, arch **x86_64**, memory **1024 MB**, timeout **5 minutes**, env from `env.example`. Attach `iam-policy.json`.
 
-- Runtime: **Container image**
-- Image: the URI you pushed
-- Architecture: **x86_64**
-- Memory: **1024 MB** (2048 MB if parquet files are large)
-- Timeout: **5 minutes**
-- Environment variables from `env.example`
+S3 trigger on the **events** bucket: `s3:ObjectCreated:*`, prefix `events/`, suffix `.parquet`.
 
-Attach `iam-policy.json` (replace the bucket, prefix, and KMS key if the bucket uses SSE-KMS).
+SAM: see `template.yaml`. The bucket must already exist.
 
-## S3 trigger
-
-On the Teleport **events** bucket (not session recordings):
-
-- Event type: `s3:ObjectCreated:*`
-- Prefix: `events/` (adjust if your layout is `s3://bucket/<tenant-id>/YYYY-MM-DD/`)
-- Suffix: `.parquet`
-
-Lambda also unwraps **SNS** and **SQS** notifications that contain the same S3 event JSON, so you can put SQS in front for retries.
-
-If the bucket is in another account, add a bucket policy allowing this function�s role `s3:GetObject`, and use a cross-account trigger or SQS.
-
-## SAM / CloudFormation
-
-```bash
-sam deploy \
-  --template-file template.yaml \
-  --stack-name teleport-s3-parquet-coralogix \
-  --capabilities CAPABILITY_IAM \
-  --parameter-overrides \
-    TeleportEventsBucket=your-bucket \
-    EventsPrefix=events/ \
-    ImageUri=ACCOUNT.dkr.ecr.REGION.amazonaws.com/teleport-s3-parquet-coralogix:latest \
-    CoralogixDomain=eu1.coralogix.com \
-    CoralogixApiKey=YOUR_KEY
-```
-
-Note: the bucket must already exist. If SAM cannot attach the S3 notification (existing bucket with other notifications), add the trigger in the S3 console.
-
-## Backfill existing files
-
-The S3 trigger only fires for **new** objects. To ship history:
-
-```bash
-aws s3 ls s3://YOUR-BUCKET/events/ --recursive \
-  | awk '{print $4}' \
-  | grep '\.parquet$' \
-  | while read -r key; do
-      aws lambda invoke \
-        --function-name teleport-s3-parquet-coralogix \
-        --cli-binary-format raw-in-base64-out \
-        --payload "{\"bucket\":\"YOUR-BUCKET\",\"key\":\"${key}\"}" \
-        /tmp/out.json
-    done
-```
-
-Or invoke with a captured S3 event from CloudWatch.
-
-## Finding logs in Coralogix
-
-```
-applicationName:teleport AND subsystemName:audit
-applicationName:teleport AND event:user.login
-applicationName:teleport AND event:session.start
-```
-
-Each log `text` is the Teleport audit JSON. Fields such as `event`, `code`, `user`, `uid`, and `time` are available after JSON parsing.
+---
 
 ## Troubleshooting
 
 | Symptom | What to check |
 |---------|----------------|
-| Function never runs | S3 prefix/suffix filter, Lambda permission `lambda:InvokeFunction` from S3 |
+| Function never runs | Prefix/suffix, `lambda:InvokeFunction` from S3, bucket region vs `aws_region` |
+| Image manifest not supported | Rebuild with `--provenance=false --sbom=false` and `linux/amd64` |
 | `Missing required environment variable` | `CORALOGIX_SEND_YOUR_DATA_KEY` |
-| AccessDenied on GetObject | IAM + KMS decrypt if SSE-KMS |
-| Skipping keys | `S3_KEY_PREFIX` / session-recording paths under `/sessions/` |
-| No logs in Coralogix | Domain (`ingress.<CORALOGIX_DOMAIN>`), Explore time range vs `event_time` |
-| Timeout | Raise memory/timeout; parquet batches can hold up to ~20k events |
-| Duplicate logs | Disable Event Handler if this S3 path is the only source you want |
+| AccessDenied on GetObject | Runtime IAM + KMS decrypt if SSE-KMS |
+| `logs:DescribeLogGroups` AccessDenied | Keep `manage_log_group = false` |
+| Skipping keys | `S3_KEY_PREFIX` / paths under `/sessions/` |
+| Empty Explore | Domain (`ingress.<CORALOGIX_DOMAIN>`), time range vs parquet `event_time` |
+| Timeout | Raise memory (also CPU) and timeout |
+| Duplicate logs | Disable Event Handler if this S3 path is the only source |
+
+---
 
 ## Local smoke test
 
