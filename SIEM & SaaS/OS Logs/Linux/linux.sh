@@ -140,7 +140,12 @@ fi
 otel_conf="receivers:
   filelog:
     include:
-      - /var/log/*.log
+      - /var/log/*.log              # all files ending with .log
+      - /var/log/syslog             # general system log (Debian/Ubuntu)
+      - /var/log/messages           # general system + kernel log (RHEL/CentOS/Amazon Linux)
+      - /var/log/secure             # SSH, sudo, auth events (RHEL family)
+      - /var/log/cron               # cron job activity (RHEL family)
+      - /var/log/audit/audit.log    # auditd: syscalls, file access, user/privilege changes
       $docker_input
 processors:
   batch: {}
