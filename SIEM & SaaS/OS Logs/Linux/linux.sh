@@ -204,6 +204,17 @@ fi
 
 if [ "$monitor_containers" = "false" ]; then
   chmod 644 /var/log/*.log
+
+  # The collector runs as the non-root otelcol-contrib user, but syslog, messages,
+  # secure, cron and audit.log are readable by root only. Grant the collector binary
+  # read-only access to them. Unlike chmod, this survives log rotation.
+  if command -v setcap >/dev/null 2>&1 && setcap cap_dac_read_search=+ep /usr/bin/otelcol-contrib; then
+    echo "Granted read access to restricted log files (cap_dac_read_search)"
+  else
+    echo "Warning: could not set cap_dac_read_search on /usr/bin/otelcol-contrib."
+    echo "Root-only files (syslog, messages, secure, cron, audit.log) will not be collected."
+    echo "Install setcap (libcap2-bin on Ubuntu, libcap on RHEL/Amazon Linux) and re-run."
+  fi
 fi
 echo "$otel_conf" > /etc/otelcol-contrib/config.yaml
 systemctl enable otelcol-contrib.service
